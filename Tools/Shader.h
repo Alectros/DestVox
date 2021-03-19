@@ -16,6 +16,11 @@ class Shader
 public:
     unsigned int ID;
 
+    Shader()
+    {
+
+    }
+
     //  онструктор генерирует шейдер на лету
     Shader(const char* vertexPath, const char* fragmentPath)
     {

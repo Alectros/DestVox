@@ -13,29 +13,50 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Файлы ресурсов\Tools">
+      <UniqueIdentifier>{62b85476-f991-458b-bea3-3ae90ff5d3ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Tools\stb_image.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="More\include\glad\glad.c">
+      <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stb_image.h">
-      <Filter>Файлы ресурсов</Filter>
-    </ClInclude>
     <ClInclude Include="Tools\Camera.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Файлы ресурсов\Tools</Filter>
     </ClInclude>
     <ClInclude Include="Tools\Light.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Файлы ресурсов\Tools</Filter>
     </ClInclude>
     <ClInclude Include="Tools\Mesh.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Файлы ресурсов\Tools</Filter>
     </ClInclude>
     <ClInclude Include="Tools\Model.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Файлы ресурсов\Tools</Filter>
     </ClInclude>
     <ClInclude Include="Tools\Shader.h">
+      <Filter>Файлы ресурсов\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Файлы ресурсов\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramParams.h">
+      <Filter>Файлы ресурсов\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Файлы ресурсов\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Файлы ресурсов\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="World3DObject.h">
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
   </ItemGroup>

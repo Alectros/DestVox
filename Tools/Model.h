@@ -33,6 +33,11 @@ public:
     bool gammaCorrection;
     string name;
 
+    Model()
+    {
+
+    }
+
     // Конструктор в качестве аргумента использует путь к 3D-модели
     Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
     {
