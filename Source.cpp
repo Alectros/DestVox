@@ -56,7 +56,11 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
-    World3DObject shaman("Objects/Shaman_models/Notext/shaman.obj", program1);
+   // World3DObject shaman("Objects/Shaman_models/Notext/shaman.obj", program1);
+  //  SingleObject shaman(program1,"shaman", "Objects/Shaman_models/Notext/shaman.obj");
+    //SingleObject shaman(program1, "shaman", "Objects/Shaman_models/Notext/shaman.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    Model s("Objects/Shaman_models/Notext/shaman.obj");
+    SingleObject shaman(program1, "shaman", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     
     DirectedLight dir(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.1, 0.1, 0.1));
     vector<PointLight> lightP;
