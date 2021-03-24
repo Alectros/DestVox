@@ -43,14 +43,15 @@ public:
     vector<unsigned int> indices;
     vector<Texture> textures;
     unsigned int VAO;
+    string name;
 
     // Конструктор
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, string name)
     {
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
-
+        this->name = name;
         // Теперь, когда у нас есть все необходимые данные, устанавливаем вершинные буферы и указатели атрибутов
         setupMesh();
     }

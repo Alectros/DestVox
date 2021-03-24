@@ -21,7 +21,7 @@ protected:
 	glm::mat4 rotation = glm::mat4(1.0f);
 	glm::vec3 scale;
 
-	void VertexShaderMatrixSet(Camera camera, ProgramParams params)
+	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		glm::mat4 model = rotation;
 		model = glm::translate(model, position);
@@ -29,10 +29,10 @@ protected:
 		shader.setMat4("model", model);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)params.SCR_WIDTH / (float)params.SCR_HEIGHT, 0.1f, 100.0f);
-		shader.setMat4("projection", projection);
+		shader.setMat4("projection", objProj*projection);
 
 		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("view", view);
+		shader.setMat4("view", objView*view);
 	}
 
 public:
@@ -59,16 +59,16 @@ public:
 		this->name = name;
 	}
 
-	virtual void Draw(Camera camera, ProgramParams params)
+	virtual void Draw(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		shader.use();
-		VertexShaderMatrixSet(camera, params);
+		VertexShaderMatrixSet(camera, params, objModel, objProj, objView);
 	}
 
-	virtual void Draw(Camera camera, ProgramParams &params, DirectedLight &dLight, vector<PointLight> &pLights, vector<SpotLight> &sLights)
+	virtual void Draw(Camera camera, ProgramParams &params, DirectedLight &dLight, vector<PointLight> &pLights, vector<SpotLight> &sLights, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		shader.use();
-		VertexShaderMatrixSet(camera, params);
+		VertexShaderMatrixSet(camera, params, objModel, objProj, objView);
 
 		dLight.AddToShader(shader,"directedlight");
 
@@ -115,10 +115,13 @@ public:
 	{
 		vector = glm::normalize(vector);
 		glm::vec3 objNormal = (glm::vec3)(rotation * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
-		float angle = glm::acos( glm::dot(objNormal, vector));
+		float angle = glm::acos(glm::dot(objNormal, vector));
 		glm::vec3 normal = glm::cross(objNormal, vector);
 		if (normal != glm::vec3(0.0f))
+		{
+			normal = glm::normalize(normal);
 			rotation = glm::rotate(rotation, angle, normal);
+		}
 	}
 
 	void RotationToVector(float Ox, float Oy, float Oz)
@@ -141,82 +144,114 @@ public:
 	}
 };
 
-class SingleObject :World3DObject
+class SingleObject :public World3DObject
 {
 private:
-	Model** models;
-	int count;
+	Model* model;
 
 public:
+	string name;
 
 	SingleObject(Shader shader, string name) :World3DObject(shader,name)
 	{
-		models = NULL;
-		count = 0;
+		model = NULL;
 	}
 
 	SingleObject(Shader shader, string name, string path) :World3DObject(shader, name)
 	{
-		models = new Model*[1];
-		models[0] = new Model(path);
-		count = 1;
+		model = new Model(path);
 	}
 
 	SingleObject(Shader shader, string name, string path, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
 	{
-		models = new Model*[1];
-		models[0] = new Model(path);
-		count = 1;
+		model = new Model(path);
 	}
 
 	SingleObject(Shader shader, string name, Model* model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
 	{
-		models = new Model * [1];
-		models[0] = model;
-		count = 1;
+		this->model = model;
 	}
 
-	void Draw(Camera camera, ProgramParams params)
+	void Draw(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
-		World3DObject::Draw(camera, params);
-		for (int i = 0; i < count; i++)
-			(*models[i]).Draw(shader);
+		World3DObject::Draw(camera, params, objModel, objProj, objView);
+		(*model).Draw(shader);
 	}
 
-	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
-		World3DObject::Draw(camera, params, dLight, pLights, sLights);
-		for (int i = 0; i < count; i++)
-			(*models[i]).Draw(shader);
+		World3DObject::Draw(camera, params, dLight, pLights, sLights, objModel, objProj, objView);
+		(*model).Draw(shader);
 	}
 };
 
-class CombinedObject :World3DObject
+bool Comp(SingleObject* a, SingleObject* b)
+{
+	return strcmp(a->name.c_str(), b->name.c_str()) < 0;
+}
+
+class CombinedObject :public World3DObject
 {
 protected:
-	SingleObject** parts;
-	int count;
+	vector<SingleObject*> parts;
+	bool sorted = 0;
 
 public:
 
 	CombinedObject(Shader shader, string name) :World3DObject(shader, name)
 	{
-		parts = NULL;
+	}
+
+	CombinedObject(Shader shader, string name, SingleObject* obj, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
+	{
+		parts.push_back(obj);
+	}
+
+	CombinedObject(Shader shader, string name, vector<SingleObject*> model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
+	{
+		parts = model;
+	}
+
+	void AddObject(SingleObject* obj)
+	{
+		parts.push_back(obj);
+		sorted = 0;
+	}
+
+	void Sort()
+	{
+		sort(parts.begin(), parts.end(), Comp);
+		sorted = 1;
 	}
 
 	void Draw(Camera camera, ProgramParams params)
 	{
-		World3DObject::Draw(camera, params);
-		for (int i = 0; i < count; i++)
-			(*parts[i]).Draw(camera,params);
+		if (!sorted)
+		{
+			Sort();
+		}
+
+		glm::mat4 model = rotation;
+		model = glm::translate(model, position);
+		model = glm::scale(model, scale);
+
+		for (int i = 0; i < parts.size(); i++)
+			(*parts[i]).Draw(camera, params, model);
 	}
 
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
-		World3DObject::Draw(camera, params, dLight, pLights, sLights);
-		for (int i = 0; i < count; i++)
-			(*parts[i]).Draw(camera, params, dLight, pLights, sLights);
+		if (!sorted)
+		{
+			Sort();
+		}
+
+		glm::mat4 model = rotation;
+		model = glm::translate(model, position);
+		model = glm::scale(model, scale);
+
+		for (int i = 0; i < parts.size(); i++)
+			(*parts[i]).Draw(camera, params, dLight, pLights, sLights, model);
 	}
 };
-
 #endif

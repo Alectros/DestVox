@@ -58,14 +58,21 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
    // World3DObject shaman("Objects/Shaman_models/Notext/shaman.obj", program1);
   //  SingleObject shaman(program1,"shaman", "Objects/Shaman_models/Notext/shaman.obj");
-    //SingleObject shaman(program1, "shaman", "Objects/Shaman_models/Notext/shaman.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    Model s("Objects/Shaman_models/Notext/shaman.obj");
-    SingleObject shaman(program1, "shaman", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+   // SingleObject shaman(program1, "shaman", "Objects/Shaman_models/Notext/shaman.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    Model s("Objects/Cube/cube.obj");
+
+    SingleObject shaman1(program1, "shaman1", &s, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject shaman2(program1, "shaman2", &s, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+
+
+    CombinedObject mod(program1,"shamank",&shaman1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    mod.AddObject(&shaman2);
     
     DirectedLight dir(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.1, 0.1, 0.1));
     vector<PointLight> lightP;
     vector<SpotLight> lightS;
-    PointLight Plight(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0, 3.0, 0.0), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
+    PointLight Plight(glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(0.0, 5.0, 0.0), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     lightP.push_back(Plight);
 
 
@@ -85,11 +92,17 @@ int main()
         //glClearColor(scene1.backgroundColor.r, scene1.backgroundColor.g, scene1.backgroundColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+       // mod.Draw(camera, parameters, dir, lightP, lightS);
 
-        shaman.Draw(camera, parameters, dir, lightP, lightS);
+        //shaman1.Move(0.0, 0.0, 2.0);
+        //shaman2.Move(0.0, 0.0, 2.0);
+        shaman1.Draw(camera, parameters, dir, lightP, lightS);
+        shaman2.Draw(camera, parameters, dir, lightP, lightS);
+        cubestart.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+       
     }
 
 

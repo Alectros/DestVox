@@ -99,8 +99,6 @@ private:
         vector<unsigned int> indices;
         vector<Texture> textures;
 
-        name = mesh->mName.C_Str();
-
         // ÷икл по всем вершинам меша
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
@@ -183,7 +181,7 @@ private:
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // ¬озвращаем меш-объект, созданный на основе полученных данных
-        return Mesh(vertices, indices, textures);
+        return Mesh(vertices, indices, textures,mesh->mName.C_Str());
     }
 
     // ѕровер€ем все текстуры материалов заданного типа и загружам текстуры, если они еще не были загружены.
