@@ -60,20 +60,25 @@ int main()
   //  SingleObject shaman(program1,"shaman", "Objects/Shaman_models/Notext/shaman.obj");
    // SingleObject shaman(program1, "shaman", "Objects/Shaman_models/Notext/shaman.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     Model s("Objects/Cube/cube.obj");
+    Model orTest("Objects/Movement_test/sirFig.obj");
 
-    SingleObject shaman1(program1, "shaman1", &s, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject shaman2(program1, "shaman2", &s, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+   // SingleObject shaman1(program1, "shaman1", &s, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    //SingleObject shaman2(program1, "shaman2", &s, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+    Figure.RotationToVector(1.0f, 0.0f, 1.0f);
+    Figure.RotationToVector(1.0f, 1.0f, 1.0f);
 
 
-    CombinedObject mod(program1,"shamank",&shaman1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    mod.AddObject(&shaman2);
+   // CombinedObject mod(program1,"shamank",&shaman1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    //mod.AddObject(&shaman2);
     
-    DirectedLight dir(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.1, 0.1, 0.1));
+    DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.3f, 0.7f, 1.0f));
     vector<PointLight> lightP;
     vector<SpotLight> lightS;
-    PointLight Plight(glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(0.0, 5.0, 0.0), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
-    lightP.push_back(Plight);
+  //  PointLight Plight(glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(0.0, 5.0, 0.0), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
+//    lightP.push_back(Plight);
 
 
     while (!glfwWindowShouldClose(window))
@@ -96,9 +101,10 @@ int main()
 
         //shaman1.Move(0.0, 0.0, 2.0);
         //shaman2.Move(0.0, 0.0, 2.0);
-        shaman1.Draw(camera, parameters, dir, lightP, lightS);
-        shaman2.Draw(camera, parameters, dir, lightP, lightS);
+        //shaman1.Draw(camera, parameters, dir, lightP, lightS);
+        //shaman2.Draw(camera, parameters, dir, lightP, lightS);
         cubestart.Draw(camera, parameters, dir, lightP, lightS);
+        Figure.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

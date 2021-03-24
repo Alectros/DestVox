@@ -23,8 +23,10 @@ protected:
 
 	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
-		glm::mat4 model = rotation;
+		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, position);
+
+		model = model * rotation;
 		model = glm::scale(model, scale);
 		shader.setMat4("model", model);
 
@@ -84,7 +86,7 @@ public:
 
 		shader.setFloat("shininess", 32.0f);
 		shader.setVec3("viewPos", camera.Position);
-		shader.setVec3("faceColor", glm::vec3(0.7));
+		shader.setVec3("faceColor", glm::vec3(0.5,0.5,1.0));
 	}
 
 	void Move(double x, double y, double z)
@@ -114,7 +116,7 @@ public:
 	void RotationToVector(glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
-		glm::vec3 objNormal = (glm::vec3)(rotation * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+		glm::vec3 objNormal =  (glm::mat3)(glm::transpose(glm::inverse(rotation))) * glm::vec3(0.0f, 1.0f, 0.0f);
 		float angle = glm::acos(glm::dot(objNormal, vector));
 		glm::vec3 normal = glm::cross(objNormal, vector);
 		if (normal != glm::vec3(0.0f))
@@ -122,6 +124,10 @@ public:
 			normal = glm::normalize(normal);
 			rotation = glm::rotate(rotation, angle, normal);
 		}
+
+		glm::mat3 mx3 = glm::transpose(glm::inverse(rotation));
+
+		glm::vec3 objNormal2 = mx3 * glm::vec3(0.0f, 1.0f, 0.0f);
 	}
 
 	void RotationToVector(float Ox, float Oy, float Oz)
