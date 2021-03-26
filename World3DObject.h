@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <vector>
 
 class World3DObject
@@ -18,16 +19,21 @@ protected:
 	//Collision &collision;
 	Shader shader;
 	glm::vec3 position;
-	glm::mat4 rotation = glm::mat4(1.0f);
+	glm::quat qrotation;
+	glm::vec3 vrotation;
+	float pitch;//тангаж
+	float yaw;//рысканье
+	float roll;//крен
 	glm::vec3 scale;
 
 	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-
-		model = model * rotation;
 		model = glm::scale(model, scale);
+
+		glm::mat4 rotation = glm::toMat4(qrotation);
+		model = rotation * model;
+		model = glm::translate(model, position);
 		shader.setMat4("model", model);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)params.SCR_WIDTH / (float)params.SCR_HEIGHT, 0.1f, 100.0f);
@@ -45,7 +51,13 @@ public:
 		//this->collision = collision;
 		this->shader = shader;
 		this->position = glm::vec3(1.0f);
-		this->rotation = glm::mat4(1.0f);
+
+		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		this->vrotation = glm::vec3(0.0f, 1.0f, 0.0f);
+		this->pitch = 0.0f;
+		this->yaw = 0.0f;
+		this->roll = 0.0f;
+
 		this->scale = glm::vec3(1.0f);
 		this->name = name;
 	}
@@ -55,7 +67,8 @@ public:
 		//this->collision = collision;
 		this->shader = shader;
 		this->position = position;
-		this->rotation = glm::mat4(1.0f);
+		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		this->vrotation = glm::vec3(0.0f, 1.0f, 0.0f);
 		RotationToVector(normal);
 		this->scale = scale;
 		this->name = name;
@@ -105,7 +118,7 @@ public:
 
 	void Rotation(float angle, glm::vec3 vector)
 	{
-		rotation = glm::rotate(rotation, angle, vector);
+
 	}
 
 	void Rotation(float angle, float Ox, float Oy, float Oz)
@@ -116,18 +129,21 @@ public:
 	void RotationToVector(glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
-		glm::vec3 objNormal =  (glm::mat3)(glm::transpose(glm::inverse(rotation))) * glm::vec3(0.0f, 1.0f, 0.0f);
-		float angle = glm::acos(glm::dot(objNormal, vector));
-		glm::vec3 normal = glm::cross(objNormal, vector);
-		if (normal != glm::vec3(0.0f))
+		float angle = glm::degrees(glm::acos(glm::dot(this->vrotation, vector)));
+		glm::vec3 crossvector = glm::cross(this->vrotation, vector);
+		if (crossvector != glm::vec3(0.0f))
 		{
-			normal = glm::normalize(normal);
-			rotation = glm::rotate(rotation, angle, normal);
+			crossvector = glm::normalize(crossvector);
+
+			float sinhangle = glm::sin( glm::radians(angle / 2));
+			float coshangle = glm::cos(glm::radians(angle / 2));
+
+			glm::quat a(coshangle,crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
+			this->qrotation = this->qrotation * a;
+			
+			
+			this->vrotation = vector;
 		}
-
-		glm::mat3 mx3 = glm::transpose(glm::inverse(rotation));
-
-		glm::vec3 objNormal2 = mx3 * glm::vec3(0.0f, 1.0f, 0.0f);
 	}
 
 	void RotationToVector(float Ox, float Oy, float Oz)
@@ -237,7 +253,7 @@ public:
 			Sort();
 		}
 
-		glm::mat4 model = rotation;
+		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, position);
 		model = glm::scale(model, scale);
 
@@ -252,7 +268,7 @@ public:
 			Sort();
 		}
 
-		glm::mat4 model = rotation;
+		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, position);
 		model = glm::scale(model, scale);
 

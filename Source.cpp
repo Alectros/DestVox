@@ -64,10 +64,10 @@ int main()
 
    // SingleObject shaman1(program1, "shaman1", &s, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     //SingleObject shaman2(program1, "shaman2", &s, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-    Figure.RotationToVector(1.0f, 0.0f, 1.0f);
+    Figure.RotationToVector(0.0f, 1.0f, 0.0f);
     Figure.RotationToVector(1.0f, 1.0f, 1.0f);
 
 
