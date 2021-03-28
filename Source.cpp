@@ -10,6 +10,8 @@
 #include "Tools/Camera.h"
 #include "Scene.h"
 #include "World3DObject.h"
+#include <fstream>
+#include <Windows.h>
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -56,23 +58,14 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
-   // World3DObject shaman("Objects/Shaman_models/Notext/shaman.obj", program1);
-  //  SingleObject shaman(program1,"shaman", "Objects/Shaman_models/Notext/shaman.obj");
-   // SingleObject shaman(program1, "shaman", "Objects/Shaman_models/Notext/shaman.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
     Model s("Objects/Cube/cube.obj");
-    Model orTest("Objects/Movement_test/sirFig.obj");
+    Model orTest("Objects/RUP/sirFigRUL.obj");
 
-   // SingleObject shaman1(program1, "shaman1", &s, glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    //SingleObject shaman2(program1, "shaman2", &s, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject Figure2(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-    Figure.RotationToVector(0.0f, 1.0f, 0.0f);
-    Figure.RotationToVector(1.0f, 1.0f, 1.0f);
-
-
-   // CombinedObject mod(program1,"shamank",&shaman1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    //mod.AddObject(&shaman2);
     
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.3f, 0.7f, 1.0f));
     vector<PointLight> lightP;
@@ -80,6 +73,7 @@ int main()
   //  PointLight Plight(glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(0.0, 5.0, 0.0), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
 //    lightP.push_back(Plight);
 
+    vector<float> outangle;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -94,23 +88,21 @@ int main()
 
         // Рендеринг
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        //glClearColor(scene1.backgroundColor.r, scene1.backgroundColor.g, scene1.backgroundColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-       // mod.Draw(camera, parameters, dir, lightP, lightS);
 
-        //shaman1.Move(0.0, 0.0, 2.0);
-        //shaman2.Move(0.0, 0.0, 2.0);
-        //shaman1.Draw(camera, parameters, dir, lightP, lightS);
-        //shaman2.Draw(camera, parameters, dir, lightP, lightS);
         cubestart.Draw(camera, parameters, dir, lightP, lightS);
+
+
+        Figure.Rotation(1.0f, 0.0f, -1.0f, -1.0f);
+        
+
         Figure.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
        
     }
-
 
 	return 0;
 }

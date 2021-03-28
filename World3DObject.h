@@ -20,7 +20,8 @@ protected:
 	Shader shader;
 	glm::vec3 position;
 	glm::quat qrotation;
-	glm::vec3 vrotation;
+	glm::vec3 up;
+	glm::vec3 front;
 	float pitch;//тангаж
 	float yaw;//рысканье
 	float roll;//крен
@@ -31,6 +32,7 @@ protected:
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::scale(model, scale);
 
+		qrotation = glm::normalize(qrotation);
 		glm::mat4 rotation = glm::toMat4(qrotation);
 		model = rotation * model;
 		model = glm::translate(model, position);
@@ -43,6 +45,28 @@ protected:
 		shader.setMat4("view", objView*view);
 	}
 
+	void CalculateEilers()
+	{
+		glm::vec3 XY(up.x, up.y, 0.0f);
+		if (XY == glm::vec3(0.0f))
+			XY = glm::vec3(1.0f, 0.0f, 0.0f);
+		XY = glm::normalize(XY);
+
+		glm::vec3 XZ(up.x, 0.0f, up.z);
+		if (XZ == glm::vec3(0.0f))
+			XZ = glm::vec3(0.0f, 0.0f, 1.0f);
+		XZ = glm::normalize(XZ);
+
+		glm::vec3 YZ(0.0f, up.y, up.z);
+		if (YZ == glm::vec3(0.0f))
+			YZ = glm::vec3(0.0f, 1.0f, 0.0f);
+		YZ = glm::normalize(YZ);
+
+		pitch = glm::degrees(glm::acos(glm::dot(XY, glm::vec3(0.0f, 1.0f, 0.0f))));
+		yaw = glm::degrees(glm::acos(glm::dot(XZ, glm::vec3(0.0f, 0.0f, 1.0f))));
+		roll = glm::degrees(glm::acos(glm::dot(YZ, glm::vec3(0.0f, 1.0f, 0.0f))));
+	}
+
 public:
 	string name;
 
@@ -53,11 +77,12 @@ public:
 		this->position = glm::vec3(1.0f);
 
 		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		this->vrotation = glm::vec3(0.0f, 1.0f, 0.0f);
+		this->up = glm::vec3(0.0f, 1.0f, 0.0f);
+		this->front = glm::vec3(0.0f, 0.0f, 1.0f);
 		this->pitch = 0.0f;
 		this->yaw = 0.0f;
 		this->roll = 0.0f;
-
+		CalculateEilers();
 		this->scale = glm::vec3(1.0f);
 		this->name = name;
 	}
@@ -68,8 +93,13 @@ public:
 		this->shader = shader;
 		this->position = position;
 		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		this->vrotation = glm::vec3(0.0f, 1.0f, 0.0f);
+		this->up = glm::vec3(0.0f, 1.0f, 0.0f);
+		this->front = glm::vec3(0.0f, 0.0f, 1.0f);
+		this->pitch = 0.0f;
+		this->yaw = 0.0f;
+		this->roll = 0.0f;
 		RotationToVector(normal);
+		CalculateEilers();
 		this->scale = scale;
 		this->name = name;
 	}
@@ -116,9 +146,51 @@ public:
 		position.z = z;
 	}
 
-	void Rotation(float angle, glm::vec3 vector)
+	void RotationEilers(float p,float y, float r)
 	{
 
+	}
+
+	void RotateToFrontVector(glm::vec3 setFront)//dont working
+	{
+		if (up.y > 0.0f)
+		{
+			float vy = (-1 * (up.x * setFront.x) - (up.z * setFront.z)) / up.y;
+			glm::vec3 realFront = glm::normalize(glm::vec3(setFront.x, vy, setFront.z));
+			glm::vec3 currFront = glm::normalize(glm::toMat3(qrotation)*glm::vec3(0.0f, 0.0f, 1.0f));
+
+			float angle = glm::degrees(glm::acos(glm::dot(realFront, currFront)));
+
+			if (!isnan(angle))
+			{
+				Rotation(-angle);
+			}
+		}
+
+		else
+		{
+			//RotateToFrontVector(glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+	}
+
+	void CorrectFrontVector()
+	{
+		RotateToFrontVector(front);
+	}
+
+	void Rotation(float angle, glm::vec3 vector)
+	{
+		vector = glm::normalize(vector);
+
+		float sinhangle = glm::sin(glm::radians(angle / 2));
+		float coshangle = glm::cos(glm::radians(angle / 2));
+
+		glm::quat a(coshangle, vector.x * sinhangle, vector.y * sinhangle, vector.z * sinhangle);
+
+		this->qrotation = a * this->qrotation;
+		this->up = glm::toMat4(a) * glm::vec4(this->up, 0.0f);
+
+		CalculateEilers();
 	}
 
 	void Rotation(float angle, float Ox, float Oy, float Oz)
@@ -126,11 +198,16 @@ public:
 		Rotation(angle, glm::vec3(Ox, Oy, Oz));
 	}
 
+	void Rotation(float angle)
+	{
+		Rotation(angle, this->up);
+	}
+
 	void RotationToVector(glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
-		float angle = glm::degrees(glm::acos(glm::dot(this->vrotation, vector)));
-		glm::vec3 crossvector = glm::cross(this->vrotation, vector);
+		float angle = glm::degrees(glm::acos(glm::dot(this->up, vector)));
+		glm::vec3 crossvector = glm::cross(this->up, vector);
 		if (crossvector != glm::vec3(0.0f))
 		{
 			crossvector = glm::normalize(crossvector);
@@ -141,9 +218,9 @@ public:
 			glm::quat a(coshangle,crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
 			this->qrotation = this->qrotation * a;
 			
-			
-			this->vrotation = vector;
+			this->up = vector;
 		}
+		CalculateEilers();
 	}
 
 	void RotationToVector(float Ox, float Oy, float Oz)
