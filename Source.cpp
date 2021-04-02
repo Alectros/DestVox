@@ -61,12 +61,14 @@ int main()
 
     Model s("Objects/Cube/cube.obj");
     Model orTest("Objects/RUP/sirFigRUL.obj");
+    Model Stank("Objects/STank/tank.obj");
+   // Model shaman("Objects/Shaman_models/Notext/shaman.obj");
 
     SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-    SingleObject Figure(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    SingleObject Figure2(program1, "Figure", &orTest, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    SingleObject Figure(program1, "Figure", &Stank, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, -0.5f));
+    SingleObject Figure2(program1, "Figure", &orTest, glm::vec3(-2.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+ 
 
-    
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.3f, 0.7f, 1.0f));
     vector<PointLight> lightP;
     vector<SpotLight> lightS;
@@ -93,15 +95,16 @@ int main()
 
         cubestart.Draw(camera, parameters, dir, lightP, lightS);
 
-
-        Figure.Rotation(1.0f, 0.0f, -1.0f, -1.0f);
-        
+       // Figure.Rotation(1.0f, 1.0f, 0.0f, 0.0f);
+       // Figure.RotationToVector(0.0f, sin(currentFrame), cos(currentFrame));
+        Figure.RotateToFrontVector(camera.Front,STATE_TO_FACE,STATE_MIN);
 
         Figure.Draw(camera, parameters, dir, lightP, lightS);
+       // Figure2.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-       
+       // Sleep(250);
     }
 
 	return 0;

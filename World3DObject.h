@@ -13,19 +13,27 @@
 #include <glm/gtx/quaternion.hpp>
 #include <vector>
 
+enum Status{
+	STATE_TO_FACE = 0,
+	STATE_TO_LINE = 1,
+	STATE_MAX = 2,
+	STATE_MIN = 3
+};
+
 class World3DObject
 {
 protected:
 	//Collision &collision;
 	Shader shader;
-	glm::vec3 position;
-	glm::quat qrotation;
-	glm::vec3 up;
-	glm::vec3 front;
-	float pitch;//тангаж
-	float yaw;//рысканье
-	float roll;//крен
-	glm::vec3 scale;
+	glm::vec3 position = glm::vec3(1.0f);
+	glm::quat qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 front = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 right = glm::vec3(-1.0f, 0.0f, 0.0f);
+	float pitch = 0.0f;//тангаж
+	float yaw = 0.0f;//рысканье
+	float roll = 0.0f;//крен
+	glm::vec3 scale = glm::vec3(1.0f);;
 
 	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
@@ -45,26 +53,70 @@ protected:
 		shader.setMat4("view", objView*view);
 	}
 
-	void CalculateEilers()
+	void Restruct()
 	{
-		glm::vec3 XY(up.x, up.y, 0.0f);
+		glm::mat3 A = glm::toMat3(qrotation);
+		up = glm::normalize(A * glm::vec3(0.0f, 1.0f, 0.0f));
+		front = glm::normalize(A * glm::vec3(0.0f, 0.0f, 1.0f));
+		right = glm::normalize(A * glm::vec3(-1.0f, 0.0f, 0.0f));
+
+		glm::vec3 OX(1.0f, 0.0, 0.0);
+		glm::vec3 OY(0.0f, 1.0, 0.0);
+		glm::vec3 OZ(0.0f, 0.0, -1.0);
+
+		glm::vec3 XY = glm::vec3(up.x, up.y, 0.0f);
 		if (XY == glm::vec3(0.0f))
-			XY = glm::vec3(1.0f, 0.0f, 0.0f);
+			XY = OY;
 		XY = glm::normalize(XY);
 
-		glm::vec3 XZ(up.x, 0.0f, up.z);
-		if (XZ == glm::vec3(0.0f))
-			XZ = glm::vec3(0.0f, 0.0f, 1.0f);
-		XZ = glm::normalize(XZ);
-
-		glm::vec3 YZ(0.0f, up.y, up.z);
+		glm::vec3 YZ = glm::vec3(0.0f, up.y, up.z);
 		if (YZ == glm::vec3(0.0f))
-			YZ = glm::vec3(0.0f, 1.0f, 0.0f);
+			YZ = OY;
 		YZ = glm::normalize(YZ);
 
-		pitch = glm::degrees(glm::acos(glm::dot(XY, glm::vec3(0.0f, 1.0f, 0.0f))));
-		yaw = glm::degrees(glm::acos(glm::dot(XZ, glm::vec3(0.0f, 0.0f, 1.0f))));
-		roll = glm::degrees(glm::acos(glm::dot(YZ, glm::vec3(0.0f, 1.0f, 0.0f))));
+		glm::vec3 XZ = glm::vec3(up.x, 0.0f, up.z);
+		if (XZ == glm::vec3(0.0f))
+			XZ = OX;
+		XZ = glm::normalize(XZ);
+
+
+		//troubles with Eilers
+		if (IsLCS(up, OX, OZ))
+			pitch = glm::degrees(glm::acos(glm::dot(XY, OY)));
+		else
+			pitch = glm::degrees(glm::acos(glm::dot(XY, OY)));
+
+		if (IsLCS(up, OY, OX))
+			roll = glm::degrees(glm::acos(glm::dot(YZ, OY)));
+		else
+			roll = glm::degrees(glm::acos(glm::dot(YZ, OY)));
+
+		if (IsLCS(up, OY, OX))
+			yaw = glm::degrees(glm::acos(glm::dot(XZ, OX)));
+		else
+			yaw = glm::degrees(glm::acos(glm::dot(XZ, OX)));
+	}
+
+	bool IsLCS(glm::vec3 first, glm::vec3 second,glm::vec3 third)
+	{
+		glm::mat3 A(first, second, third);
+		return glm::determinant(glm::transpose(A)) > 0;
+	}
+
+	void CorrectSC()
+	{		
+		if (up.y <=0.0f)
+		{
+			glm::vec3 tekRight = glm::toMat3(qrotation) * glm::vec3(-1.0f, 0.0f, 0.0f);
+			float vy = (-1 * (up.x * right.x) - (up.z * right.z)) / up.y;
+
+			glm::vec3 realRight(right.x, vy, right.z);
+
+			if (realRight.x * tekRight.x < 0.0f)
+			{
+				Rotation(180.0f);
+			}
+		}
 	}
 
 public:
@@ -74,16 +126,8 @@ public:
 	{
 		//this->collision = collision;
 		this->shader = shader;
-		this->position = glm::vec3(1.0f);
 
-		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		this->up = glm::vec3(0.0f, 1.0f, 0.0f);
-		this->front = glm::vec3(0.0f, 0.0f, 1.0f);
-		this->pitch = 0.0f;
-		this->yaw = 0.0f;
-		this->roll = 0.0f;
-		CalculateEilers();
-		this->scale = glm::vec3(1.0f);
+		Restruct();
 		this->name = name;
 	}
 
@@ -92,14 +136,7 @@ public:
 		//this->collision = collision;
 		this->shader = shader;
 		this->position = position;
-		this->qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		this->up = glm::vec3(0.0f, 1.0f, 0.0f);
-		this->front = glm::vec3(0.0f, 0.0f, 1.0f);
-		this->pitch = 0.0f;
-		this->yaw = 0.0f;
-		this->roll = 0.0f;
 		RotationToVector(normal);
-		CalculateEilers();
 		this->scale = scale;
 		this->name = name;
 	}
@@ -151,31 +188,50 @@ public:
 
 	}
 
-	void RotateToFrontVector(glm::vec3 setFront)//dont working
+	void RotateToFrontVector(glm::vec3 setFront, int state = STATE_TO_FACE, int stateType = STATE_MIN)//Rotate object to front vector
 	{
-		if (up.y > 0.0f)
+		if (up.y != 0.0f)
 		{
 			float vy = (-1 * (up.x * setFront.x) - (up.z * setFront.z)) / up.y;
 			glm::vec3 realFront = glm::normalize(glm::vec3(setFront.x, vy, setFront.z));
-			glm::vec3 currFront = glm::normalize(glm::toMat3(qrotation)*glm::vec3(0.0f, 0.0f, 1.0f));
 
-			float angle = glm::degrees(glm::acos(glm::dot(realFront, currFront)));
+			float angle = glm::degrees(glm::acos(glm::dot(realFront, front)));
+
+			if (state == STATE_TO_LINE)
+			{
+				glm::vec3 realFrontMir(-1.0f * realFront);
+				float angle2 = glm::degrees(glm::acos(glm::dot(realFrontMir, front)));
+				if (angle2 < angle && stateType == STATE_MIN || angle2 > angle && stateType == STATE_MAX)
+				{
+					angle = angle2;
+					realFront = realFrontMir;
+				}
+			}
+
+			float currAngle = glm::degrees(glm::acos(glm::dot(setFront, realFront)));
+			if (state == STATE_TO_FACE && ((currAngle > 90.0f && stateType == STATE_MIN) || (currAngle < 90.0f && stateType == STATE_MAX)))
+			{
+				angle += 180.0f;
+			}
 
 			if (!isnan(angle))
 			{
-				Rotation(-angle);
+				if (!IsLCS(up, realFront, front))
+				{
+					Rotation(angle);
+				}
+				else
+				{
+					Rotation(-angle);
+				}
+				Restruct();
 			}
-		}
-
-		else
-		{
-			//RotateToFrontVector(glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 	}
 
-	void CorrectFrontVector()
+	void RotateToFrontVector(float x,float y, float z, int state = STATE_TO_FACE, int stateType = STATE_MIN)
 	{
-		RotateToFrontVector(front);
+		RotateToFrontVector(glm::vec3(x, y, z), state, stateType);
 	}
 
 	void Rotation(float angle, glm::vec3 vector)
@@ -188,9 +244,7 @@ public:
 		glm::quat a(coshangle, vector.x * sinhangle, vector.y * sinhangle, vector.z * sinhangle);
 
 		this->qrotation = a * this->qrotation;
-		this->up = glm::toMat4(a) * glm::vec4(this->up, 0.0f);
-
-		CalculateEilers();
+		Restruct();
 	}
 
 	void Rotation(float angle, float Ox, float Oy, float Oz)
@@ -206,21 +260,33 @@ public:
 	void RotationToVector(glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
-		float angle = glm::degrees(glm::acos(glm::dot(this->up, vector)));
-		glm::vec3 crossvector = glm::cross(this->up, vector);
+		glm::vec3 currRight(0.0f, 0.0f, 1.0f);
+		glm::vec3 currup(0.0f, 1.0f, 0.0f);
+
+		float angle = glm::degrees(glm::acos(glm::dot(currup, vector)));
+
+		glm::vec3 crossvector = glm::cross(currup, vector);
 		if (crossvector != glm::vec3(0.0f))
 		{
 			crossvector = glm::normalize(crossvector);
 
-			float sinhangle = glm::sin( glm::radians(angle / 2));
+			float sinhangle = glm::sin(glm::radians(angle / 2));
 			float coshangle = glm::cos(glm::radians(angle / 2));
 
-			glm::quat a(coshangle,crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
-			this->qrotation = this->qrotation * a;
-			
-			this->up = vector;
+			glm::quat a(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
+			this->qrotation = a;
 		}
-		CalculateEilers();
+		else if (vector.y < 0)
+		{
+			crossvector = glm::normalize(currRight);
+
+			float sinhangle = glm::sin(glm::radians(180.0f / 2));
+			float coshangle = glm::cos(glm::radians(180.0f / 2));
+
+			glm::quat a(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
+			this->qrotation = a;
+		}
+		Restruct();
 	}
 
 	void RotationToVector(float Ox, float Oy, float Oz)
