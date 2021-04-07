@@ -11,14 +11,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <vector>
+#include <math.h>
+
+#include <fstream>
 
 enum Status{
 	STATE_TO_FACE = 0,
-	STATE_TO_LINE = 1,
-	STATE_MAX = 2,
-	STATE_MIN = 3
+	STATE_TO_LINE,
+	STATE_MAX,
+	STATE_MIN,
+	STATE_AROUND_X,
+	STATE_AROUND_Y,
+	STATE_AROUND_Z,
+	STATE_AROUND_ALL
 };
+
+ofstream file("out.txt");
 
 class World3DObject
 {
@@ -33,17 +43,17 @@ protected:
 	float pitch = 0.0f;//тангаж
 	float yaw = 0.0f;//рысканье
 	float roll = 0.0f;//крен
-	glm::vec3 scale = glm::vec3(1.0f);;
+	glm::vec3 scale = glm::vec3(1.0f);
 
 	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::scale(model, scale);
 
+		model = glm::translate(model, position);
 		qrotation = glm::normalize(qrotation);
 		glm::mat4 rotation = glm::toMat4(qrotation);
-		model = rotation * model;
-		model = glm::translate(model, position);
+		model = model * rotation;
+		model = glm::scale(model, scale);
 		shader.setMat4("model", model);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)params.SCR_WIDTH / (float)params.SCR_HEIGHT, 0.1f, 100.0f);
@@ -55,46 +65,15 @@ protected:
 
 	void Restruct()
 	{
+		qrotation = glm::normalize(qrotation);
 		glm::mat3 A = glm::toMat3(qrotation);
-		up = glm::normalize(A * glm::vec3(0.0f, 1.0f, 0.0f));
+		up = glm::normalize(A * glm::vec3(0.0f, 1.0f, 0.0f) );
 		front = glm::normalize(A * glm::vec3(0.0f, 0.0f, 1.0f));
 		right = glm::normalize(A * glm::vec3(-1.0f, 0.0f, 0.0f));
 
-		glm::vec3 OX(1.0f, 0.0, 0.0);
-		glm::vec3 OY(0.0f, 1.0, 0.0);
-		glm::vec3 OZ(0.0f, 0.0, -1.0);
-
-		glm::vec3 XY = glm::vec3(up.x, up.y, 0.0f);
-		if (XY == glm::vec3(0.0f))
-			XY = OY;
-		XY = glm::normalize(XY);
-
-		glm::vec3 YZ = glm::vec3(0.0f, up.y, up.z);
-		if (YZ == glm::vec3(0.0f))
-			YZ = OY;
-		YZ = glm::normalize(YZ);
-
-		glm::vec3 XZ = glm::vec3(up.x, 0.0f, up.z);
-		if (XZ == glm::vec3(0.0f))
-			XZ = OX;
-		XZ = glm::normalize(XZ);
-
-
-		//troubles with Eilers
-		if (IsLCS(up, OX, OZ))
-			pitch = glm::degrees(glm::acos(glm::dot(XY, OY)));
-		else
-			pitch = glm::degrees(glm::acos(glm::dot(XY, OY)));
-
-		if (IsLCS(up, OY, OX))
-			roll = glm::degrees(glm::acos(glm::dot(YZ, OY)));
-		else
-			roll = glm::degrees(glm::acos(glm::dot(YZ, OY)));
-
-		if (IsLCS(up, OY, OX))
-			yaw = glm::degrees(glm::acos(glm::dot(XZ, OX)));
-		else
-			yaw = glm::degrees(glm::acos(glm::dot(XZ, OX)));
+		pitch = glm::degrees(glm::pitch(qrotation));
+		yaw = glm::degrees(glm::yaw(qrotation));
+		roll = glm::degrees(glm::roll(qrotation));
 	}
 
 	bool IsLCS(glm::vec3 first, glm::vec3 second,glm::vec3 third)
@@ -103,20 +82,11 @@ protected:
 		return glm::determinant(glm::transpose(A)) > 0;
 	}
 
-	void CorrectSC()
-	{		
-		if (up.y <=0.0f)
-		{
-			glm::vec3 tekRight = glm::toMat3(qrotation) * glm::vec3(-1.0f, 0.0f, 0.0f);
-			float vy = (-1 * (up.x * right.x) - (up.z * right.z)) / up.y;
-
-			glm::vec3 realRight(right.x, vy, right.z);
-
-			if (realRight.x * tekRight.x < 0.0f)
-			{
-				Rotation(180.0f);
-			}
-		}
+	glm::vec3 IntersectSquareLinePoint(glm::vec3 sqN, glm::vec3 p)
+	{
+		float lya = -1 * (sqN.x * p.x + sqN.y * p.y + sqN.z * p.z) / (sqN.x * sqN.x + sqN.y * sqN.y + sqN.z * sqN.z);
+		glm::vec3 interp(lya * sqN.x + p.x, lya * sqN.y + p.y, lya * sqN.z + p.z);
+		return interp;
 	}
 
 public:
@@ -136,7 +106,7 @@ public:
 		//this->collision = collision;
 		this->shader = shader;
 		this->position = position;
-		RotationToVector(normal);
+		SetUpVector(normal);
 		this->scale = scale;
 		this->name = name;
 	}
@@ -169,6 +139,59 @@ public:
 		shader.setVec3("faceColor", glm::vec3(0.5,0.5,1.0));
 	}
 
+	void LookDirection(glm::vec3 direction)
+	{
+		direction = glm::normalize(direction);
+
+		glm::vec3 frontProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), front));
+		glm::vec3 directionProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), direction));
+
+		float angle = glm::degrees(glm::acos(glm::dot(frontProj, directionProj)));
+
+		if (isnan(angle))
+		{
+			angle = 0.0f;
+		}
+
+		if (IsLCS(directionProj, glm::vec3(0.0f, 1.0f, 0.0f), frontProj))
+		{
+			RotationAxes(angle, glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+		else
+		{
+			RotationAxes(-angle, glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+
+		glm::vec3 crossV = glm::normalize( glm::cross(direction, front));
+
+		if (crossV == glm::vec3(0.0f))
+		{
+			crossV = right;
+		}
+
+		angle = glm::degrees(glm::acos(glm::dot(direction, front)));
+
+		if (isnan(angle))
+		{
+			angle = 0.0f;
+		}
+
+		if (!IsLCS(crossV, direction, front))
+		{
+			RotationAxes(angle, crossV);
+		}
+		else
+		{
+			RotationAxes(-angle, crossV);
+		}
+
+	}
+
+	void LookPoint(glm::vec3 point)
+	{
+		LookDirection(point - position);
+	}
+
 	void Move(double x, double y, double z)
 	{
 		position.x += x;
@@ -183,58 +206,66 @@ public:
 		position.z = z;
 	}
 
-	void RotationEilers(float p,float y, float r)
+	void RotateToDegrees(float p,float y, float r)
 	{
+		qrotation = glm::eulerAngleXYZ(glm::radians(p), glm::radians(y), glm::radians(r));
 
+		Restruct();
 	}
 
-	void RotateToFrontVector(glm::vec3 setFront, int state = STATE_TO_FACE, int stateType = STATE_MIN)//Rotate object to front vector
+	void RotateDegrees(float p, float y, float r)
 	{
-		if (up.y != 0.0f)
+		RotateToDegrees(pitch + p, yaw + y, roll + r);
+	}
+
+	void LookToYaw(glm::vec3 setFront, int state = STATE_TO_FACE, int stateType = STATE_MIN)//Rotate object to front vector
+	{
+		glm::vec3 realFront = glm::normalize(IntersectSquareLinePoint(up,setFront));
+
+		float angle = glm::degrees(glm::acos(glm::dot(realFront, front)));
+
+		if (state == STATE_TO_LINE)
 		{
-			float vy = (-1 * (up.x * setFront.x) - (up.z * setFront.z)) / up.y;
-			glm::vec3 realFront = glm::normalize(glm::vec3(setFront.x, vy, setFront.z));
-
-			float angle = glm::degrees(glm::acos(glm::dot(realFront, front)));
-
-			if (state == STATE_TO_LINE)
+			glm::vec3 realFrontMir(-1.0f * realFront);
+			float angle2 = glm::degrees(glm::acos(glm::dot(realFrontMir, front)));
+			if (angle2 < angle && stateType == STATE_MIN || angle2 > angle && stateType == STATE_MAX)
 			{
-				glm::vec3 realFrontMir(-1.0f * realFront);
-				float angle2 = glm::degrees(glm::acos(glm::dot(realFrontMir, front)));
-				if (angle2 < angle && stateType == STATE_MIN || angle2 > angle && stateType == STATE_MAX)
-				{
-					angle = angle2;
-					realFront = realFrontMir;
-				}
+				angle = angle2;
+				realFront = realFrontMir;
 			}
+		}
 
-			float currAngle = glm::degrees(glm::acos(glm::dot(setFront, realFront)));
-			if (state == STATE_TO_FACE && ((currAngle > 90.0f && stateType == STATE_MIN) || (currAngle < 90.0f && stateType == STATE_MAX)))
-			{
-				angle += 180.0f;
-			}
+		float currAngle = glm::degrees(glm::acos(glm::dot(setFront, realFront)));
+		if (state == STATE_TO_FACE && ((currAngle > 90.0f && stateType == STATE_MIN) || (currAngle < 90.0f && stateType == STATE_MAX)))
+		{
+			angle += 180.0f;
+		}
 
-			if (!isnan(angle))
+		if (!isnan(angle))
+		{
+			if (!IsLCS(up, realFront, front))
 			{
-				if (!IsLCS(up, realFront, front))
-				{
-					Rotation(angle);
-				}
-				else
-				{
-					Rotation(-angle);
-				}
-				Restruct();
+				RotationAxes(angle);
 			}
+			else
+			{
+				RotationAxes(-angle);
+			}
+			Restruct();
 		}
 	}
 
-	void RotateToFrontVector(float x,float y, float z, int state = STATE_TO_FACE, int stateType = STATE_MIN)
+	void LookToYaw(float x,float y, float z, int state = STATE_TO_FACE, int stateType = STATE_MIN)
 	{
-		RotateToFrontVector(glm::vec3(x, y, z), state, stateType);
+		LookToYaw(glm::vec3(x, y, z), state, stateType);
 	}
 
-	void Rotation(float angle, glm::vec3 vector)
+	void LookPointYaw(glm::vec3 point, int state = STATE_TO_FACE, int stateType = STATE_MIN)
+	{
+		LookToYaw(point - position, state, stateType);
+	}
+
+	void RotationAxes(float angle, glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
 
@@ -247,17 +278,17 @@ public:
 		Restruct();
 	}
 
-	void Rotation(float angle, float Ox, float Oy, float Oz)
+	void RotationAxes(float angle, float Ox, float Oy, float Oz)
 	{
-		Rotation(angle, glm::vec3(Ox, Oy, Oz));
+		RotationAxes(angle, glm::vec3(Ox, Oy, Oz));
 	}
 
-	void Rotation(float angle)
+	void RotationAxes(float angle)
 	{
-		Rotation(angle, this->up);
+		RotationAxes(angle, this->up);
 	}
 
-	void RotationToVector(glm::vec3 vector)
+	void SetUpVector(glm::vec3 vector)
 	{
 		vector = glm::normalize(vector);
 		glm::vec3 currRight(0.0f, 0.0f, 1.0f);
@@ -289,9 +320,9 @@ public:
 		Restruct();
 	}
 
-	void RotationToVector(float Ox, float Oy, float Oz)
+	void SetUpVector(float Ox, float Oy, float Oz)
 	{
-		RotationToVector(glm::vec3(Ox, Oy, Oz));
+		SetUpVector(glm::vec3(Ox, Oy, Oz));
 	}
 
 	void Scale(double x, double y, double z)
@@ -391,10 +422,6 @@ public:
 
 	void Draw(Camera camera, ProgramParams params)
 	{
-		if (!sorted)
-		{
-			Sort();
-		}
 
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, position);

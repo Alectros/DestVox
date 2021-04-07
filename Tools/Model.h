@@ -32,6 +32,7 @@ public:
     string directory;
     bool gammaCorrection;
     string name;
+    glm::vec3 faceColor= glm::vec3(0.6f);
 
     Model()
     {
