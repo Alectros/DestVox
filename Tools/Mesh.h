@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Shader.h" // shader.h идентичен файлу shader_s.h
+#include "texture.h"
 
 #include <string>
 #include <vector>
@@ -30,11 +31,7 @@ struct Vertex {
     glm::vec3 Bitangent;
 };
 
-struct Texture {
-    unsigned int id;
-    string type;
-    string path;
-};
+
 
 class Mesh {
 public:

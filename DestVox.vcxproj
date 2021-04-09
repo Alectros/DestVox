@@ -155,7 +155,9 @@
     <ClInclude Include="Collision.h" />
     <ClInclude Include="ProgramParams.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SearchAlg.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Tools\Camera.h" />
     <ClInclude Include="Tools\Light.h" />
     <ClInclude Include="Tools\Mesh.h" />

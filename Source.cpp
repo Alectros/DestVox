@@ -58,13 +58,31 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
+    Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
     Model s("Objects/Cube/cube.obj");
     Model orTest("Objects/RUP/sirFigRUL.obj");
     Model Stank("Objects/STank/tank.obj");
+   // Model backpack("Objects/Backpack/backpack.obj");
     //Model shaman("Objects/Shaman_models/Notext/shaman.obj");
 
     SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    SingleObject tank1(program1, "shaman2", &Stank, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    SingleObject tank2(program1, "shaman2", &Stank, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    SingleObject tank3(program1, "shaman2", &Stank, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    tank1.SetInitial(glm::vec3(0.0f, 0.0f, -1.0f));
+    tank2.SetInitial(glm::vec3(0.0f, 0.0f, -1.0f));
+    tank3.SetInitial(glm::vec3(0.0f, 0.0f, -1.0f));
+
+    CombinedObject sprite(program1, "object");
+    //sprite.MoveTo(1.0f,1.0f,1.0f);
+    sprite.AddObject(&tank1);
+    sprite.AddObject(&tank2);
+    sprite.AddObject(&tank3);
+
+  //   sprite.SetUpVector(0.0, 1.0f, 1.0f);
+
+    //Figure.SetInitial(glm::vec3(0.0f, 0.0f, -1.0f));
 
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.3f, 0.7f, 1.0f));
@@ -88,10 +106,15 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+       // tank.Draw(camera, parameters, dir, lightP, lightS);
+        //tank.LookPoint(camera.Position);
+        //tank.LookDirection(camera.Front);
+
+        sprite.LookDirection(camera.Front);
+        sprite.Draw(camera, parameters, dir, lightP, lightS);
+        
       
         cubestart.Draw(camera, parameters, dir, lightP, lightS);
-
-       
 
 
         glfwSwapBuffers(window);

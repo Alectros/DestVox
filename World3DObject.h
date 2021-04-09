@@ -32,11 +32,12 @@ ofstream file("out.txt");
 
 class World3DObject
 {
-protected:
+public:
 	//Collision &collision;
 	Shader shader;
-	glm::vec3 position = glm::vec3(1.0f);
+	glm::vec3 position = glm::vec3(0.0f);
 	glm::quat qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+	glm::quat initial = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 front = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 right = glm::vec3(-1.0f, 0.0f, 0.0f);
@@ -45,22 +46,25 @@ protected:
 	float roll = 0.0f;//крен
 	glm::vec3 scale = glm::vec3(1.0f);
 
-	void VertexShaderMatrixSet(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
+	glm::mat4 GetProjectionMatrix(Camera camera, ProgramParams params)
 	{
-		glm::mat4 model = glm::mat4(1.0f);
-
-		model = glm::translate(model, position);
-		qrotation = glm::normalize(qrotation);
-		glm::mat4 rotation = glm::toMat4(qrotation);
-		model = model * rotation;
-		model = glm::scale(model, scale);
-		shader.setMat4("model", model);
-
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)params.SCR_WIDTH / (float)params.SCR_HEIGHT, 0.1f, 100.0f);
-		shader.setMat4("projection", objProj*projection);
+		return projection;
+	}
 
-		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("view", objView*view);
+	void SetLights(DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	{
+		dLight.AddToShader(shader, "directedlight");
+
+		PointLight::lightCount = pLights.size();
+		for (int i = 0; i < PointLight::lightCount; i++)
+			pLights[i].AddToShaderI(shader, "pointlights", i);
+		PointLight::AddCount(shader, "COUNT_POINT_LIGHTS");
+
+		SpotLight::lightCount = sLights.size();
+		for (int i = 0; i < sLights.size(); i++)
+			sLights[i].AddToShaderI(shader, "spotLights", i);
+		SpotLight::AddCount(shader, "COUNT_SPOTLIGHTS");
 	}
 
 	void Restruct()
@@ -89,7 +93,20 @@ protected:
 		return interp;
 	}
 
-public:
+//public:
+
+	glm::mat4 GetModelMatrix()
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+
+		model = glm::translate(model, position);
+		qrotation = glm::normalize(qrotation);
+		glm::mat4 rotation = glm::toMat4(qrotation * initial);
+		model = model * rotation;
+		model = glm::scale(model, scale);
+		return model;
+	}
+
 	string name;
 
 	World3DObject(Shader shader,string name)
@@ -114,29 +131,63 @@ public:
 	virtual void Draw(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
 		shader.use();
-		VertexShaderMatrixSet(camera, params, objModel, objProj, objView);
+
+		glm::mat4 model = GetModelMatrix();
+
+		shader.setMat4("model", model);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
 	}
 
 	virtual void Draw(Camera camera, ProgramParams &params, DirectedLight &dLight, vector<PointLight> &pLights, vector<SpotLight> &sLights, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
 	{
-		shader.use();
-		VertexShaderMatrixSet(camera, params, objModel, objProj, objView);
+		shader.use();	
+		glm::mat4 model = GetModelMatrix();
 
-		dLight.AddToShader(shader,"directedlight");
+		shader.setMat4("model", model);
 
-		PointLight::lightCount = pLights.size();
-		for (int i = 0; i < PointLight::lightCount; i++)
-			pLights[i].AddToShaderI(shader, "pointlights", i);
-		PointLight::AddCount(shader, "COUNT_POINT_LIGHTS");
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
 
-		SpotLight::lightCount = sLights.size();
-		for (int i = 0; i < sLights.size(); i++)
-			sLights[i].AddToShaderI(shader, "spotLights", i);
-		SpotLight::AddCount(shader,"COUNT_SPOTLIGHTS");
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
+		SetLights(dLight, pLights, sLights);
 
 		shader.setFloat("shininess", 32.0f);
 		shader.setVec3("viewPos", camera.Position);
 		shader.setVec3("faceColor", glm::vec3(0.5,0.5,1.0));
+	}
+
+	void SetInitial(glm::vec3 frontV)
+	{
+		glm::vec3 realFront = glm::normalize(IntersectSquareLinePoint(up, frontV));
+
+		float angle = glm::degrees(glm::acos(glm::dot(realFront, front)));
+
+		float currAngle = glm::degrees(glm::acos(glm::dot(frontV, realFront)));
+		glm::quat a1(1.0f, 0.0f, 0.0f, 0.0f);
+
+		if (!isnan(angle))
+		{
+			if (IsLCS(up, realFront, front))
+			{
+				angle *= -1;
+			}
+
+			glm::vec3 upV(0.0f, 1.0f, 0.0);
+
+			float sinhangle = glm::sin(glm::radians(angle / 2));
+			float coshangle = glm::cos(glm::radians(angle / 2));
+
+			a1 = glm::quat(coshangle, upV.x * sinhangle, upV.y * sinhangle, upV.z * sinhangle);
+		}
+
+		initial = a1 * initial;
 	}
 
 	void LookDirection(glm::vec3 direction)
@@ -164,7 +215,7 @@ public:
 
 		glm::vec3 crossV = glm::normalize( glm::cross(direction, front));
 
-		if (crossV == glm::vec3(0.0f))
+		if (crossV == glm::vec3(0.0f) || isnan(crossV.x) || isnan(crossV.y) || isnan(crossV.z))
 		{
 			crossV = right;
 		}
@@ -251,7 +302,6 @@ public:
 			{
 				RotationAxes(-angle);
 			}
-			Restruct();
 		}
 	}
 
@@ -340,12 +390,13 @@ public:
 	}
 };
 
+
+
 class SingleObject :public World3DObject
 {
-private:
+public:
 	Model* model;
 
-public:
 	string name;
 
 	SingleObject(Shader shader, string name) :World3DObject(shader,name)
@@ -368,16 +419,46 @@ public:
 		this->model = model;
 	}
 
-	void Draw(Camera camera, ProgramParams params, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
+	void Draw(Camera camera, ProgramParams params)
 	{
-		World3DObject::Draw(camera, params, objModel, objProj, objView);
-		(*model).Draw(shader);
+		shader.use();
+		glm::mat4 modelMX = GetModelMatrix();
+
+		shader.setMat4("model", modelMX);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
+		shader.setFloat("shininess", model->shininess);
+		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("faceColor", model->faceColor);
+
+		model->Draw(shader);
 	}
 
-	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights, glm::mat4 objModel = glm::mat4(1.0f), glm::mat4 objProj = glm::mat4(1.0f), glm::mat4 objView = glm::mat4(1.0f))
+	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
-		World3DObject::Draw(camera, params, dLight, pLights, sLights, objModel, objProj, objView);
-		(*model).Draw(shader);
+		shader.use();
+		glm::mat4 modelMX = GetModelMatrix();
+
+		shader.setMat4("model", modelMX);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
+		SetLights(dLight, pLights, sLights);
+
+		shader.setFloat("shininess", model->shininess);
+		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("faceColor", model->faceColor);
+
+		model->Draw(shader);
 	}
 };
 
@@ -422,28 +503,59 @@ public:
 
 	void Draw(Camera camera, ProgramParams params)
 	{
-
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-		model = glm::scale(model, scale);
+		glm::mat4 modelMXComb = GetModelMatrix();
 
 		for (int i = 0; i < parts.size(); i++)
-			(*parts[i]).Draw(camera, params, model);
+		{
+			parts[i]->shader.use();
+			glm::mat4 modelMX = parts[i]->GetModelMatrix();
+
+			shader.setMat4("model", modelMXComb * modelMX);
+
+			glm::mat4 projection = GetProjectionMatrix(camera, params);
+			shader.setMat4("projection", projection);
+
+			glm::mat4 view = camera.GetViewMatrix();
+			shader.setMat4("view", view);
+
+			shader.setFloat("shininess",parts[i]->model->shininess);
+			shader.setVec3("viewPos", camera.Position);
+			shader.setVec3("faceColor", parts[i]->model->faceColor);
+
+			parts[i]->model->Draw(parts[i]->shader);
+		}
 	}
 
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
 		if (!sorted)
 		{
-			Sort();
+			//Sort();
 		}
 
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-		model = glm::scale(model, scale);
-
+		glm::mat4 modelMXComb = GetModelMatrix();
+		
 		for (int i = 0; i < parts.size(); i++)
-			(*parts[i]).Draw(camera, params, dLight, pLights, sLights, model);
+		{
+			parts[i]->shader.use();
+			glm::mat4 modelMX = parts[i]->GetModelMatrix();
+
+			shader.setMat4("model", modelMXComb * modelMX);
+
+			glm::mat4 projection = GetProjectionMatrix(camera, params);
+			shader.setMat4("projection", projection);
+
+			glm::mat4 view = camera.GetViewMatrix();
+			shader.setMat4("view", view);
+
+			SetLights(dLight, pLights, sLights);
+
+			shader.setFloat("shininess", parts[i]->model->shininess);
+			shader.setVec3("viewPos", camera.Position);
+			shader.setVec3("faceColor", parts[i]->model->faceColor);
+
+			parts[i]->model->Draw(parts[i]->shader);
+		}
 	}
 };
 #endif

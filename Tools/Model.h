@@ -12,6 +12,8 @@
 
 #include "mesh.h"
 #include "shader.h"
+#include "SearchAlg.h"
+#include "texture.h"
 
 #include <string>
 #include <fstream>
@@ -28,11 +30,12 @@ class Model
 public:
     // ƒанные модели 
     vector<Texture> textures_loaded; // (оптимизаци€) сохран€ем все загруженные текстуры, чтобы убедитьс€, что они не загружены более одного раза
-    vector<Mesh> meshes;
+    vector<Mesh*> meshes;
     string directory;
     bool gammaCorrection;
     string name;
     glm::vec3 faceColor= glm::vec3(0.6f);
+    float shininess = 32.0f;
 
     Model()
     {
@@ -49,8 +52,45 @@ public:
     void Draw(Shader shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
-            meshes[i].Draw(shader);
+            (*meshes[i]).Draw(shader);
     }
+
+    //Methods for get submodel from one(realise at the end)
+   /* vector<string> GetMeshNames()
+    {
+        vector<string> names;
+
+        for (int i = 0; i < meshes.size(); i++)
+            names.push_back((*meshes[i]).name);
+        return names;
+    }
+
+    vector<Texture> GetModelTextures()
+    {
+        vector<Texture> allTx;
+
+        for (int i = 0; i < meshes.size(); i++)
+        {
+            allTx = TextureUnion(allTx,(*meshes[i]).textures);
+        }
+        return allTx;
+    }
+
+    Model GetSubModel(vector<string> names)
+    {
+        vector<Mesh*> outMesh;
+
+        SearchAlg search;
+
+        for (int i = 0; i < meshes.size(); i++)
+        {
+            if (search.MeshNameBiSearchVector(names, (*meshes[i]).name))
+                outMesh.push_back(meshes[i]);
+        }
+        
+
+
+    }*/
 
 private:
     // «агружаем модель с помощью Assimp и сохран€ем полученные меши в векторе meshes
@@ -93,7 +133,7 @@ private:
 
     }
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene)
+    Mesh * processMesh(aiMesh* mesh, const aiScene* scene)
     {
         // ƒанные дл€ заполнени€
         vector<Vertex> vertices;
@@ -182,7 +222,7 @@ private:
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // ¬озвращаем меш-объект, созданный на основе полученных данных
-        return Mesh(vertices, indices, textures,mesh->mName.C_Str());
+        return new Mesh(vertices, indices, textures,mesh->mName.C_Str());
     }
 
     // ѕровер€ем все текстуры материалов заданного типа и загружам текстуры, если они еще не были загружены.
