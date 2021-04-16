@@ -78,6 +78,14 @@ public:
         setupMesh();
     }
 
+    void Scale(glm::vec3 scale)
+    {
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            vertices[i].Position = scale * vertices[i].Position;
+        }
+    }
+
     // Рендеринг меша
     void Draw(Shader& shader)
     {

@@ -37,7 +37,7 @@ int main()
         return -1;
     }
 
-    Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
+    Camera camera(glm::vec3(5.0f, 3.0f, 5.0f));
     parameters.userView = &camera;
 
     glfwMakeContextCurrent(window);
@@ -99,16 +99,16 @@ int main()
     Model body = Ctank.GetSubModel(vector<string>(1,"Body_Cube.001"), "gun");
     Model turret = Ctank.GetSubModel(vector<string>(1,"Turret_Sphere.001"), "gun");
 
-    gun.MoveMeshes(glm::vec3(0.0f, -1.6f, 0.0f));
-    turret.MoveMeshes(glm::vec3(0.0f, -1.6f, 0.0f));
-
     SingleObject Cgun(program2, "map", &gun, glm::vec3(0.0, 1.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
     SingleObject Cbody(program2, "map", &body, glm::vec3(0.0, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
     SingleObject Cturret(program2, "map", &turret, glm::vec3(0.0, 1.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
 
-    Cgun.SetInitial(glm::vec3(1.0f, 0.0f, 0.0f));
-    Cbody.SetInitial(glm::vec3(1.0f, 0.0f, 0.0f));
-    Cturret.SetInitial(glm::vec3(1.0f, 0.0f, 0.0f));
+    Cgun.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
+    Cturret.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
+
+    Cgun.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
+    Cbody.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
+    Cturret.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
 
    
 
@@ -122,7 +122,6 @@ int main()
 
     vector<SpotLight> lightS;
 
-    vector<float> outangle;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -142,6 +141,8 @@ int main()
         Cgun.LookPoint(camera.Position);
         Cturret.LookPointLocked(camera.Position, STATE_AROUND_UP);
 
+        Otank.LookPointLocked(camera.Position, STATE_AROUND_UP);
+
         map.Draw(camera, parameters, dir, lightP, lightS);
         Otank.Draw(camera, parameters, dir, lightP, lightS);
         //Cgun.Draw(camera, parameters, dir, lightP, lightS);
@@ -156,6 +157,7 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
 
 	return 0;
 }

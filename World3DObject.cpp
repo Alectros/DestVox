@@ -76,7 +76,7 @@
 
 		model = glm::translate(model, position);
 		qrotation = glm::normalize(qrotation);
-		glm::mat4 rotation = glm::toMat4(qrotation * initial);
+		glm::mat4 rotation = glm::toMat4(qrotation);
 		model = model * rotation;
 		model = glm::scale(model, scale);
 		return model;
@@ -130,84 +130,25 @@
 
 		shader.setFloat("shininess", 32.0f);
 		shader.setVec3("viewPos", camera.Position);
-		shader.setVec3("faceColor", glm::vec3(0.5, 0.5, 1.0));
+		shader.setVec3("faceColor", glm::vec3(0.6));
 	}
 
-	//set initial rotate quaterion without changing origin state
-	void World3DObject::SetInitial(glm::vec3 frontV)
-	{
-		glm::vec3 realFront = glm::normalize(IntersectSquareLinePoint(up, frontV));
 
-		float angle = glm::degrees(glm::acos(glm::dot(realFront, front)));
+	void World3DObject::SetInitialMovement()
+	{}
 
-		float currAngle = glm::degrees(glm::acos(glm::dot(frontV, realFront)));
-		glm::quat a1(1.0f, 0.0f, 0.0f, 0.0f);
+	void World3DObject::SetInitialDirection()
+	{}
+	
+	void World3DObject::SetInitialScale()
+	{}
 
-		if (!isnan(angle))
-		{
-			if (IsLCS(up, realFront, front))
-			{
-				angle *= -1;
-			}
-
-			glm::vec3 upV(0.0f, 1.0f, 0.0);
-
-			float sinhangle = glm::sin(glm::radians(angle / 2));
-			float coshangle = glm::cos(glm::radians(angle / 2));
-
-			a1 = glm::quat(coshangle, upV.x * sinhangle, upV.y * sinhangle, upV.z * sinhangle);
-		}
-
-		initial = a1 * initial;
-	}
-
-	//rotate object
+	
 	void World3DObject::LookDirection(glm::vec3 direction)
 	{
-		direction = glm::normalize(direction);
-
-		glm::vec3 frontProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), front));
-		glm::vec3 directionProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), direction));
-
-		float angle = glm::degrees(glm::acos(glm::dot(frontProj, directionProj)));
-
-		if (isnan(angle))
-		{
-			angle = 0.0f;
-		}
-
-		if (IsLCS(directionProj, glm::vec3(0.0f, 1.0f, 0.0f), frontProj))
-		{
-			RotationAxes(angle, glm::vec3(0.0f, 1.0f, 0.0f));
-		}
-		else
-		{
-			RotationAxes(-angle, glm::vec3(0.0f, 1.0f, 0.0f));
-		}
-
-		glm::vec3 crossV = glm::normalize(glm::cross(direction, front));
-
-		if (crossV == glm::vec3(0.0f) || isnan(crossV.x) || isnan(crossV.y) || isnan(crossV.z))
-		{
-			crossV = right;
-		}
-
-		angle = glm::degrees(glm::acos(glm::dot(direction, front)));
-
-		if (isnan(angle))
-		{
-			angle = 0.0f;
-		}
-
-		if (!IsLCS(crossV, direction, front))
-		{
-			RotationAxes(angle, crossV);
-		}
-		else
-		{
-			RotationAxes(-angle, crossV);
-		}
-
+		glm::quat a = _lookDirection(front, right, direction);
+		qrotation = a * qrotation;
+		Restruct();
 	}
 
 	void World3DObject::LookPoint(glm::vec3 point)
@@ -313,14 +254,8 @@
 
 	void World3DObject::RotationAxes(float angle, glm::vec3 vector)
 	{
-		vector = glm::normalize(vector);
-
-		float sinhangle = glm::sin(glm::radians(angle / 2));
-		float coshangle = glm::cos(glm::radians(angle / 2));
-
-		glm::quat a(coshangle, vector.x * sinhangle, vector.y * sinhangle, vector.z * sinhangle);
-
-		this->qrotation = a * this->qrotation;
+		glm::quat a = _rotationAxes(angle, vector);
+		qrotation = a * qrotation;
 		Restruct();
 	}
 
@@ -336,33 +271,8 @@
 
 	void World3DObject::SetUpVector(glm::vec3 vector)
 	{
-		vector = glm::normalize(vector);
-		glm::vec3 currRight(0.0f, 0.0f, 1.0f);
-		glm::vec3 currup(0.0f, 1.0f, 0.0f);
-
-		float angle = glm::degrees(glm::acos(glm::dot(currup, vector)));
-
-		glm::vec3 crossvector = glm::cross(currup, vector);
-		if (crossvector != glm::vec3(0.0f))
-		{
-			crossvector = glm::normalize(crossvector);
-
-			float sinhangle = glm::sin(glm::radians(angle / 2));
-			float coshangle = glm::cos(glm::radians(angle / 2));
-
-			glm::quat a(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
-			this->qrotation = a;
-		}
-		else if (vector.y < 0)
-		{
-			crossvector = glm::normalize(currRight);
-
-			float sinhangle = glm::sin(glm::radians(180.0f / 2));
-			float coshangle = glm::cos(glm::radians(180.0f / 2));
-
-			glm::quat a(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
-			this->qrotation = a;
-		}
+		glm::quat a = _setUpVector(vector);
+		this->qrotation = a;
 		Restruct();
 	}
 
@@ -384,6 +294,109 @@
 		scale.y = y;
 		scale.z = z;
 	}
+
+	glm::quat World3DObject::_setUpVector(glm::vec3 vector)
+	{
+		vector = glm::normalize(vector);
+		glm::vec3 currRight(0.0f, 0.0f, 1.0f);
+		glm::vec3 currup(0.0f, 1.0f, 0.0f);
+
+		float angle = glm::degrees(glm::acos(glm::dot(currup, vector)));
+
+		glm::quat a(1.0f, 0.0f, 0.0f, 0.0f);
+
+		glm::vec3 crossvector = glm::cross(currup, vector);
+		if (crossvector != glm::vec3(0.0f))
+		{
+			crossvector = glm::normalize(crossvector);
+
+			float sinhangle = glm::sin(glm::radians(angle / 2));
+			float coshangle = glm::cos(glm::radians(angle / 2));
+
+			a = glm::quat(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
+		}
+		else if (vector.y < 0)
+		{
+			crossvector = glm::normalize(currRight);
+
+			float sinhangle = glm::sin(glm::radians(180.0f / 2));
+			float coshangle = glm::cos(glm::radians(180.0f / 2));
+
+			a = glm::quat(coshangle, crossvector.x * sinhangle, crossvector.y * sinhangle, crossvector.z * sinhangle);
+		}
+		return a;
+	}
+
+	glm::quat World3DObject::_rotationAxes(float angle, glm::vec3 vector)
+	{
+		vector = glm::normalize(vector);
+
+		float sinhangle = glm::sin(glm::radians(angle / 2));
+		float coshangle = glm::cos(glm::radians(angle / 2));
+
+		glm::quat a(coshangle, vector.x * sinhangle, vector.y * sinhangle, vector.z * sinhangle);
+
+		return a;
+	}
+
+	//rotate object
+	glm::quat World3DObject::_lookDirection(glm::vec3 front, glm::vec3 right, glm::vec3 direction)
+	{
+		glm::quat a(1.0f, 0.0f, 0.0f, 0.0f);
+
+		direction = glm::normalize(direction);
+
+		glm::vec3 frontProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), front));
+		glm::vec3 directionProj = glm::normalize(IntersectSquareLinePoint(glm::vec3(0.0f, 1.0f, 0.0f), direction));
+
+		float angle = glm::degrees(glm::acos(glm::dot(frontProj, directionProj)));
+
+		if (isnan(angle))
+		{
+			angle = 0.0f;
+		}
+
+		if (IsLCS(directionProj, glm::vec3(0.0f, 1.0f, 0.0f), frontProj))
+		{
+			a = _rotationAxes(angle, glm::vec3(0.0f, 1.0f, 0.0f)) * a;
+		}
+		else
+		{
+			a = _rotationAxes(-angle, glm::vec3(0.0f, 1.0f, 0.0f)) * a;
+		}
+
+		glm::mat3 A = glm::toMat3(a);
+
+		front = A * front;
+		right = A * right;
+
+		glm::vec3 crossV = glm::normalize(glm::cross(direction, front));
+
+		if (crossV == glm::vec3(0.0f) || isnan(crossV.x) || isnan(crossV.y) || isnan(crossV.z))
+		{
+			crossV = right;
+		}
+
+		angle = glm::degrees(glm::acos(glm::dot(direction, front)));
+
+		if (isnan(angle))
+		{
+			angle = 0.0f;
+		}
+
+		if (!IsLCS(crossV, direction, front))
+		{
+			a = _rotationAxes(angle, crossV) * a;
+		}
+		else
+		{
+			a = _rotationAxes(-angle, crossV) * a;
+		}
+
+		return a;
+	}
+
+
 
 
 
@@ -454,11 +467,36 @@
 		model->Draw(shader);
 	}
 
+	void SingleObject::SetInitialMovement(glm::vec3 movement)
+	{
+		for (int i = 0; i < model->meshes.size(); i++)
+		{
+			model->meshes[i]->Move(movement);
+		}
+	}
+	void SingleObject::SetInitialDirection(glm::vec3 direction)
+	{
+		glm::mat3 A = glm::toMat3(_lookDirection(front, right,direction));
+		for (int i = 0; i < model->meshes.size(); i++)
+		{
+			model->meshes[i]->Rotate(A);
+		}
+	}
+	void SingleObject::SetInitialScale(glm::vec3 scale)
+	{
+		for (int i = 0; i < model->meshes.size(); i++)
+		{
+			model->meshes[i]->Scale(scale);
+		}
+	}
+
 bool CompW3D(SingleObject* a, SingleObject* b)
 {
 	return strcmp(a->name.c_str(), b->name.c_str()) < 0;
 }
  
+
+
 
 CombinedObject::CombinedObject(Shader shader, string name) :World3DObject(shader, name)
 	{

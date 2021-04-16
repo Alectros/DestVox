@@ -37,7 +37,6 @@ public:
 	glm::vec3 scale = glm::vec3(1.0f); //scale
 
 	glm::quat qrotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); //quaterion used for define object's rotation
-	glm::quat initial = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); //initial object's rotation set 
 
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); //vector indicated vertical direction of object
 	glm::vec3 front = glm::vec3(0.0f, 0.0f, 1.0f); //vector indicated front direction of object
@@ -64,9 +63,10 @@ public:
 	
 	virtual void Draw(Camera camera, ProgramParams& params);//prepares and translates object's data to the shader without lights
 	virtual void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
+	virtual void SetInitialMovement();//set initial rotate quaterion without changing origin state
+	virtual void SetInitialDirection();
+	virtual void SetInitialScale();//set initial rotate quaterion without changing origin state
 
-	
-	void SetInitial(glm::vec3 frontV);//set initial rotate quaterion without changing origin state
 
 	//rotate object
 	void LookDirection(glm::vec3 direction);
@@ -94,6 +94,11 @@ public:
 
 	void Scale(double x, double y, double z);
 	void ScaleTo(double x, double y, double z);
+
+protected:
+	glm::quat _setUpVector(glm::vec3 vector);
+	glm::quat _rotationAxes(float angle, glm::vec3 vector);
+	glm::quat _lookDirection(glm::vec3 front, glm::vec3 right, glm::vec3 direction);
 };
 
 
@@ -113,6 +118,9 @@ public:
 
 	void Draw(Camera camera, ProgramParams params);
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void SetInitialMovement(glm::vec3 position);
+	void SetInitialDirection(glm::vec3 front);
+	void SetInitialScale(glm::vec3 scale);
 };
 
 
@@ -133,5 +141,6 @@ public:
 
 	void Draw(Camera camera, ProgramParams params);
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void SetInitial();
 };
 #endif
