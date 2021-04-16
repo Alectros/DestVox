@@ -52,6 +52,31 @@ public:
         // Теперь, когда у нас есть все необходимые данные, устанавливаем вершинные буферы и указатели атрибутов
         setupMesh();
     }
+    
+    void Move(glm::vec3 movement)
+    {
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            vertices[i].Position += movement;
+        }
+        setupMesh();
+    }
+
+    void Rotate(glm::mat3 mx)
+    {
+        glm::mat3 revMX = glm::transpose(glm::inverse(mx));
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            vertices[i].Position = mx * vertices[i].Position;
+        }
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            vertices[i].Normal = revMX * vertices[i].Normal;
+        }
+
+        setupMesh();
+    }
 
     // Рендеринг меша
     void Draw(Shader& shader)

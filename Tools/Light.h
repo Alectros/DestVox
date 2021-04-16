@@ -111,8 +111,6 @@ public:
 	float linear;
 	float quadratic;
 
-	static int lightCount;
-
 	PointLight(glm::vec3 amb, glm::vec3 diff, glm::vec3 spec, glm::vec3 pos, float constant, float linear, float quadratic, glm::vec3 bright) : Light(amb, diff, spec, bright)
 	{
 		this->position = pos;
@@ -162,13 +160,12 @@ public:
 		shader.setFloat(name_light + "[" + std::to_string(i) + "].quadratic", quadratic);
 	}
 
-	static void AddCount(Shader shader, string name_count = "count")
+	static void AddCount(Shader shader, string name_count, int lightCount)
 	{
 		shader.setInt(name_count, lightCount);
 	}
 };
 
-int PointLight::lightCount = 0;
 
 class SpotLight : virtual public Light
 {
@@ -182,8 +179,6 @@ public:
 
 	float cutOff;
 	float outerCutOff;
-
-	static int lightCount;
 
 	SpotLight(glm::vec3 amb, glm::vec3 diff, glm::vec3 spec, glm::vec3 pos, glm::vec3 dir, float constant, float linear, float quadratic, glm::vec3 bright, float cutOff, float outerCutOff) : Light(amb, diff, spec, bright)
 	{
@@ -254,12 +249,10 @@ public:
 		shader.setFloat(name_light + "[" + std::to_string(i) + "].outerCutOff", outerCutOff);
 	}
 
-	static void AddCount(Shader shader, string name_count = "count")
+	static void AddCount(Shader shader, string name_count, int lightCount)
 	{
 		shader.setInt(name_count, lightCount);
 	}
 };
-
-int SpotLight::lightCount = 0;
 
 #endif
