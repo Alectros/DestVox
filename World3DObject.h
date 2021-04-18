@@ -62,10 +62,12 @@ public:
 	glm::vec3 IntersectSquareLinePoint(glm::vec3 sqN, glm::vec3 p);//calculated the projection of the vector(p) onto the plate defines by the normal(sqN)
 	
 	virtual void Draw(Camera camera, ProgramParams& params);//prepares and translates object's data to the shader without lights
+	virtual void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
 	virtual void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
-	virtual void SetInitialMovement();//set initial rotate quaterion without changing origin state
-	virtual void SetInitialDirection();
-	virtual void SetInitialScale();//set initial rotate quaterion without changing origin state
+	virtual void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	virtual void SetInitialMovement(glm::vec3 position);//set initial rotate quaterion without changing origin state
+	virtual void SetInitialDirection(glm::vec3 front);
+	virtual void SetInitialScale(glm::vec3 scales);//set initial rotate quaterion without changing origin state
 
 
 	//rotate object
@@ -78,7 +80,6 @@ public:
 	void MoveTo(glm::vec3 pos);
 
 	void RotateToDegrees(float p, float y, float r);
-
 	void RotateDegrees(float p, float y, float r);
 
 	void LookToLocked(glm::vec3 setFront, int plateType = STATE_AROUND_UP, int state = STATE_TO_FACE, int stateType = STATE_MIN);//Rotate object to front vector
@@ -116,8 +117,10 @@ public:
 	SingleObject(Shader shader, string name, string path, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
 	SingleObject(Shader shader, string name, Model* model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
 
-	void Draw(Camera camera, ProgramParams params);
+	void Draw(Camera camera, ProgramParams& params);
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
 	void SetInitialMovement(glm::vec3 position);
 	void SetInitialDirection(glm::vec3 front);
 	void SetInitialScale(glm::vec3 scale);
@@ -127,20 +130,34 @@ public:
 class CombinedObject :public World3DObject
 {
 protected:
-	vector<SingleObject*> parts;
+	vector<World3DObject*> parts;
 	bool sorted = 0;
 
 public:
 
 	CombinedObject(Shader shader, string name);
-	CombinedObject(Shader shader, string name, SingleObject* obj, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
-	CombinedObject(Shader shader, string name, vector<SingleObject*> model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
+	CombinedObject(Shader shader, string name, World3DObject* obj, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
+	CombinedObject(Shader shader, string name, vector<World3DObject*> model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
 
-	void AddObject(SingleObject* obj);
+	void AddObject(World3DObject* obj);
 	void Sort();
 
-	void Draw(Camera camera, ProgramParams params);
+	void Draw(Camera camera, ProgramParams& params);
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
 	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
-	void SetInitial();
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void SetInitialMovement(glm::vec3 position);
+	void SetInitialDirection(glm::vec3 front);
+	void SetInitialScale(glm::vec3 scale);
+
+	void PartRotateToDegrees(vector<string> names, float p, float y, float r);
+	void PartRotateDegrees(vector<string> names, float p, float y, float r);
+	void PartLookToLocked(vector<string> names, glm::vec3 direction, int plateType = STATE_AROUND_UP, int state = STATE_TO_FACE, int stateType = STATE_MIN);
+	void PartLookPointLocked(vector<string> names, glm::vec3 point, int plateType = STATE_AROUND_UP, int state = STATE_TO_FACE, int stateType = STATE_MIN);
+	void PartLookDirection(vector<string> names, glm::vec3 direction);
+	void PartLookPoint(vector<string> names, glm::vec3 point);
+	void PartSetUpVector(vector<string> names, glm::vec3 vector);
+	void PartRotationAxes(vector<string> names, float angle, glm::vec3 vector);
+	void PartRotationAxes(vector<string> names, float angle);
 };
 #endif

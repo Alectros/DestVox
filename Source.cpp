@@ -37,7 +37,7 @@ int main()
         return -1;
     }
 
-    Camera camera(glm::vec3(5.0f, 3.0f, 5.0f));
+    Camera camera(glm::vec3(0.0f, 3.0f, 7.0f));
     parameters.userView = &camera;
 
     glfwMakeContextCurrent(window);
@@ -60,20 +60,6 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
-    Model s("Objects/Cube/cube.obj");
-    Model orTest("Objects/RUP/sirFigRUL.obj");
-    Model Stank("Objects/STank/tank.obj");
-    Model Ctank("Objects/Circle_tank/no4/Ctank.obj");
-    Model mapModel("Objects/standart_map/map.obj");
-
-    SingleObject Ktank(program2, "turret", &Ctank, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.3f));
-
-
-    CombinedObject Otank(program2,"Ctank");
-   
-
-    SingleObject cubestart(program1, "shaman2", &s, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
-    SingleObject map(program2, "map", &mapModel);
 
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
@@ -83,45 +69,58 @@ int main()
     PointLight light3(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light4(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
 
-    //ofstream models("CtankMeshes.txt");
-
-    //vector<string> meshes = Ctank.GetMeshNames();
-
-    //for (int i = 0; i < meshes.size(); i++)
-    //{
-    //    models << meshes[i] << endl;
-    //}
-    //models.close();
-    
-
-    
-    Model gun = Ctank.GetSubModel(vector<string>(1,"Gun_Cylinder"), "gun");
-    Model body = Ctank.GetSubModel(vector<string>(1,"Body_Cube.001"), "gun");
-    Model turret = Ctank.GetSubModel(vector<string>(1,"Turret_Sphere.001"), "gun");
-
-    SingleObject Cgun(program2, "map", &gun, glm::vec3(0.0, 1.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
-    SingleObject Cbody(program2, "map", &body, glm::vec3(0.0, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
-    SingleObject Cturret(program2, "map", &turret, glm::vec3(0.0, 1.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0));
-
-    Cgun.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
-    Cturret.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
-
-    Cgun.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
-    Cbody.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
-    Cturret.SetInitialDirection(glm::vec3(1.0f, 0.0f, 0.0f));
-
-   
-
-    Otank.AddObject(&Cgun);
-    Otank.AddObject(&Cbody);
-    Otank.AddObject(&Cturret);
-
-    
-
     lightP.push_back(light1);
 
     vector<SpotLight> lightS;
 
+    Model tankModel("Objects/Circle_tank/no4/ctank.obj");
+    Model mapModel("Objects/standart_map/map.obj");
+    tankModel.SetInitialDirection(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+
+    SingleObject mapObj(program2, "map", &mapModel);
+
+    Model tankGun = tankModel.GetSubModel(vector<string>(1, "Gun_Cylinder"), "gun");
+    tankGun.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
+    Model tankBody = tankModel.GetSubModel(vector<string>(1, "Body_Cube.001"), "body");
+    Model tankTurret = tankModel.GetSubModel(vector<string>(1, "Turret_Sphere.001"), "turret");
+    tankTurret.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
+
+    SingleObject gunObj(program2,"gun",&tankGun);
+    SingleObject bodyObj(program2,"body",&tankBody);
+    SingleObject turretObj(program2,"turret",&tankTurret);
+
+    SingleObject gunObj2(program2, "gun", &tankGun);
+    SingleObject bodyObj2(program2, "body", &tankBody);
+    SingleObject turretObj2(program2, "turret", &tankTurret);
+
+    gunObj.Move(0.0f, 1.6f, 0.0f);
+    turretObj.Move(0.0f, 1.6f, 0.0f);
+
+
+    gunObj2.Move(0.0f, 1.6f, 0.0f);
+    turretObj2.Move(0.0f, 1.6f, 0.0f);
+
+    CombinedObject Ctank1(program2,"tank1");
+    Ctank1.AddObject(&gunObj);
+    Ctank1.AddObject(&bodyObj);
+    Ctank1.AddObject(&turretObj);
+
+    Ctank1.MoveTo(-5.0f, 0.0f, 0.0f);
+
+    CombinedObject Ctank2(program2, "tank2");
+    Ctank2.AddObject(&gunObj2);
+    Ctank2.AddObject(&bodyObj2);
+    Ctank2.AddObject(&turretObj2);
+
+    Ctank2.MoveTo(5.0f, 0.0f, 0.0f);
+
+    CombinedObject pair(program2, "pair");
+
+    pair.AddObject(&Ctank1);
+    pair.AddObject(&Ctank2);
+
+    vector<string> names(1, "gun");
+    vector<string> names2(1, "turret");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -138,21 +137,16 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Cgun.LookPoint(camera.Position);
-        Cturret.LookPointLocked(camera.Position, STATE_AROUND_UP);
+       // pair.LookPoint(camera.Position);
+        Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);
 
-        Otank.LookPointLocked(camera.Position, STATE_AROUND_UP);
+        Ctank1.PartLookPoint(names, camera.Position);
+        Ctank2.PartLookPoint(names, camera.Position);
+        Ctank1.PartLookPointLocked(names2, camera.Position);
+        Ctank2.PartLookPointLocked(names2, camera.Position);
 
-        map.Draw(camera, parameters, dir, lightP, lightS);
-        Otank.Draw(camera, parameters, dir, lightP, lightS);
-        //Cgun.Draw(camera, parameters, dir, lightP, lightS);
-       // Cbody.Draw(camera, parameters, dir, lightP, lightS);
-        //Cturret.Draw(camera, parameters, dir, lightP, lightS);
-
-        
-        
-        cubestart.Draw(camera, parameters, dir, lightP, lightS);
-
+        mapObj.Draw(camera, parameters, dir, lightP, lightS);
+        pair.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

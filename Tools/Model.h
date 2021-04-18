@@ -31,7 +31,8 @@ public:
     std::string directory;
     bool gammaCorrection;
     std::string name;
-    glm::vec3 faceColor= glm::vec3(0.6f);
+
+    glm::vec3 faceColor = glm::vec3(0.6f);
     float shininess = 32.0f;
 
     Model();
@@ -41,6 +42,10 @@ public:
 
     // Отрисовываем модель, а значит и все её меши
     void Draw(Shader shader);
+    void SetInitialMovement(glm::vec3 movement);
+    void SetInitialDirection(glm::mat3 direction);
+    void SetInitialScale(glm::vec3 scale);
+    void SetMaterialSettings(Shader shader);
 
     void MoveMeshes(glm::vec3 movement);
 

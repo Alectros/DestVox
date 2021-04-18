@@ -86,6 +86,7 @@ public:
         }
     }
 
+
     // Рендеринг меша
     void Draw(Shader& shader)
     {

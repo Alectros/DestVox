@@ -40,6 +40,30 @@ using namespace std;
             (*meshes[i]).Draw(shader);
     }
 
+    void Model::SetMaterialSettings(Shader shader)
+    {
+        shader.setFloat("shininess", shininess);
+        shader.setVec3("faceColor", faceColor);
+    }
+
+    void  Model::SetInitialMovement(glm::vec3 movement)
+    {
+        for (int i = 0; i < meshes.size(); i++)
+            meshes[i]->Move(movement);
+    }
+
+    void  Model::SetInitialDirection(glm::mat3 direction)
+    {
+        for (int i = 0; i < meshes.size(); i++)
+            meshes[i]->Rotate(direction);
+    }
+
+    void  Model::SetInitialScale(glm::vec3 scale)
+    {
+        for (int i = 0; i < meshes.size(); i++)
+            meshes[i]->Scale(scale);
+    }
+
     void Model::MoveMeshes(glm::vec3 movement)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)

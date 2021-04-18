@@ -121,6 +121,21 @@
 		shader.setMat4("view", view);
 	}
 
+	void World3DObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel)
+	{
+		shader.use();
+
+		glm::mat4 model = GetModelMatrix();
+
+		shader.setMat4("model", objModel * model);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+	}
+
 	//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
 	void World3DObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
@@ -133,14 +148,25 @@
 		shader.setVec3("faceColor", glm::vec3(0.6));
 	}
 
+	void World3DObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	{
+		Draw(camera, params, objModel);
 
-	void World3DObject::SetInitialMovement()
+		SetLights(dLight, pLights, sLights);
+
+		shader.setFloat("shininess", 32.0f);
+		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("faceColor", glm::vec3(0.6));
+	}
+
+
+	void World3DObject::SetInitialMovement(glm::vec3 position)
 	{}
 
-	void World3DObject::SetInitialDirection()
+	void World3DObject::SetInitialDirection(glm::vec3 direction)
 	{}
 	
-	void World3DObject::SetInitialScale()
+	void World3DObject::SetInitialScale(glm::vec3 scale)
 	{}
 
 	
@@ -425,8 +451,11 @@
 		this->model = model;
 	}
 
-	void SingleObject::Draw(Camera camera, ProgramParams params)
+	void SingleObject::Draw(Camera camera, ProgramParams& params)
 	{
+		if (model == NULL)
+			return;
+
 		shader.use();
 		glm::mat4 modelMX = GetModelMatrix();
 
@@ -445,8 +474,34 @@
 		model->Draw(shader);
 	}
 
+	void SingleObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel)
+	{
+		if (model == NULL)
+			return;
+
+		shader.use();
+		glm::mat4 modelMX = GetModelMatrix();
+
+		shader.setMat4("model", objModel*modelMX);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
+		shader.setFloat("shininess", model->shininess);
+		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("faceColor", model->faceColor);
+
+		model->Draw(shader);
+	}
+
 	void SingleObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
+		if (model == NULL)
+			return;
+
 		shader.use();
 		glm::mat4 modelMX = GetModelMatrix();
 
@@ -467,30 +522,63 @@
 		model->Draw(shader);
 	}
 
+	void SingleObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel , DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	{
+		if (model == NULL)
+			return;
+		shader.use();
+		glm::mat4 modelMX = GetModelMatrix();
+
+		shader.setMat4("model", objModel * modelMX);
+
+		glm::mat4 projection = GetProjectionMatrix(camera, params);
+		shader.setMat4("projection", projection);
+
+		glm::mat4 view = camera.GetViewMatrix();
+		shader.setMat4("view", view);
+
+		SetLights(dLight, pLights, sLights);
+
+		shader.setFloat("shininess", model->shininess);
+		shader.setVec3("viewPos", camera.Position);
+		shader.setVec3("faceColor", model->faceColor);
+
+		model->Draw(shader);
+	}
+
 	void SingleObject::SetInitialMovement(glm::vec3 movement)
 	{
+		if (model == NULL)
+			return;
 		for (int i = 0; i < model->meshes.size(); i++)
 		{
-			model->meshes[i]->Move(movement);
+			if (model != NULL)
+				model->meshes[i]->Move(movement);
 		}
 	}
 	void SingleObject::SetInitialDirection(glm::vec3 direction)
 	{
+		if (model == NULL)
+			return;
 		glm::mat3 A = glm::toMat3(_lookDirection(front, right,direction));
 		for (int i = 0; i < model->meshes.size(); i++)
 		{
-			model->meshes[i]->Rotate(A);
+			if (model != NULL)
+				model->meshes[i]->Rotate(A);
 		}
 	}
 	void SingleObject::SetInitialScale(glm::vec3 scale)
 	{
+		if (model == NULL)
+			return;
 		for (int i = 0; i < model->meshes.size(); i++)
 		{
-			model->meshes[i]->Scale(scale);
+			if (model != NULL)
+				model->meshes[i]->Scale(scale);
 		}
 	}
 
-bool CompW3D(SingleObject* a, SingleObject* b)
+bool CompW3D(World3DObject* a, World3DObject* b)
 {
 	return strcmp(a->name.c_str(), b->name.c_str()) < 0;
 }
@@ -502,20 +590,21 @@ CombinedObject::CombinedObject(Shader shader, string name) :World3DObject(shader
 	{
 	}
 
-CombinedObject::CombinedObject(Shader shader, string name, SingleObject* obj, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
+CombinedObject::CombinedObject(Shader shader, string name, World3DObject* obj, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
 	{
 		parts.push_back(obj);
 	}
 
-CombinedObject::CombinedObject(Shader shader, string name, vector<SingleObject*> model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
+CombinedObject::CombinedObject(Shader shader, string name, vector<World3DObject*> model, glm::vec3 position, glm::vec3 normal, glm::vec3 scale) :World3DObject(shader, name, position, normal, scale)
 	{
 		parts = model;
+		Sort();
 	}
 
-	void CombinedObject::AddObject(SingleObject* obj)
+	void CombinedObject::AddObject(World3DObject* obj)
 	{
 		parts.push_back(obj);
-		sorted = 0;
+		Sort();
 	}
 
 	void CombinedObject::Sort()
@@ -524,59 +613,165 @@ CombinedObject::CombinedObject(Shader shader, string name, vector<SingleObject*>
 		sorted = 1;
 	}
 
-	void CombinedObject::Draw(Camera camera, ProgramParams params)
+	void CombinedObject::Draw(Camera camera, ProgramParams& params)
 	{
 		glm::mat4 modelMXComb = GetModelMatrix();
 
 		for (int i = 0; i < parts.size(); i++)
 		{
-			parts[i]->shader.use();
-			glm::mat4 modelMX = parts[i]->GetModelMatrix();
+			if (parts[i] != NULL)
+				parts[i]->Draw(camera, params, modelMXComb);
+		}
+	}
 
-			shader.setMat4("model", modelMXComb * modelMX);
+	void CombinedObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel)
+	{
+		glm::mat4 modelMXComb = GetModelMatrix();
 
-			glm::mat4 projection = GetProjectionMatrix(camera, params);
-			shader.setMat4("projection", projection);
-
-			glm::mat4 view = camera.GetViewMatrix();
-			shader.setMat4("view", view);
-
-			shader.setFloat("shininess", parts[i]->model->shininess);
-			shader.setVec3("viewPos", camera.Position);
-			shader.setVec3("faceColor", parts[i]->model->faceColor);
-
-			parts[i]->model->Draw(parts[i]->shader);
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (parts[i] != NULL)
+				parts[i]->Draw(camera, params, objModel * modelMXComb);
 		}
 	}
 
 	void CombinedObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
 	{
-		if (!sorted)
-		{
-			//Sort();
-		}
-
 		glm::mat4 modelMXComb = GetModelMatrix();
 
 		for (int i = 0; i < parts.size(); i++)
 		{
-			parts[i]->shader.use();
-			glm::mat4 modelMX = parts[i]->GetModelMatrix();
+			if (parts[i] != NULL)
+				parts[i]->Draw(camera, params, modelMXComb, dLight, pLights, sLights);
+		}
+	}
 
-			shader.setMat4("model", modelMXComb * modelMX);
+	void CombinedObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	{
+		glm::mat4 modelMXComb = GetModelMatrix();
 
-			glm::mat4 projection = GetProjectionMatrix(camera, params);
-			shader.setMat4("projection", projection);
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (parts[i] != NULL)
+				parts[i]->Draw(camera, params, objModel * modelMXComb, dLight, pLights, sLights);
+		}
+	}
 
-			glm::mat4 view = camera.GetViewMatrix();
-			shader.setMat4("view", view);
+	void CombinedObject::SetInitialMovement(glm::vec3 movement)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			parts[i]->SetInitialMovement(movement);
+		}
+	}
+	void CombinedObject::SetInitialDirection(glm::vec3 direction)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			parts[i]->SetInitialDirection(direction);
+		}
+	}
+	void CombinedObject::SetInitialScale(glm::vec3 scale)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			parts[i]->SetInitialScale(scale);
+		}
+	}
 
-			SetLights(dLight, pLights, sLights);
 
-			shader.setFloat("shininess", parts[i]->model->shininess);
-			shader.setVec3("viewPos", camera.Position);
-			shader.setVec3("faceColor", parts[i]->model->faceColor);
-
-			parts[i]->model->Draw(parts[i]->shader);
+	void CombinedObject::PartRotateToDegrees(vector<string> names, float p, float y, float r)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->RotateToDegrees(p, y, r);
+			}
+		}
+	}
+	void CombinedObject::PartRotateDegrees(vector<string> names, float p, float y, float r)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->RotateDegrees(p, y, r);
+			}
+		}
+	}
+	void CombinedObject::PartLookToLocked(vector<string> names, glm::vec3 direction, int plateType, int state, int stateType)
+	{
+		glm::mat3 A = glm::inverse(GetModelMatrix());
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->LookToLocked(A * direction, plateType, state, stateType);
+			}
+		}
+	}
+	void CombinedObject::PartLookPointLocked(vector<string> names, glm::vec3 point, int plateType, int state, int stateType)
+	{
+		glm::mat3 A = glm::inverse(GetModelMatrix());
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->LookPointLocked(A * (point - position), plateType, state, stateType);
+			}
+		}
+	}
+	void CombinedObject::PartLookDirection(vector<string> names, glm::vec3 direction)
+	{
+		glm::mat3 A = glm::inverse(GetModelMatrix());
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->LookDirection(A * direction);
+			}
+		}
+	}
+	void CombinedObject::PartLookPoint(vector<string> names, glm::vec3 point)
+	{
+		glm::mat3 A = glm::inverse(GetModelMatrix());
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->LookPoint(A * (point - position));
+			}
+		}
+	}
+	void CombinedObject::PartSetUpVector(vector<string> names, glm::vec3 vector)
+	{
+		glm::mat3 A = glm::inverse(GetModelMatrix());
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->SetUpVector(A * vector);
+			}
+		}
+	}
+	void CombinedObject::PartRotationAxes(vector<string> names, float angle, glm::vec3 vector)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->RotationAxes(angle, vector);
+			}
+		}
+	}
+	void CombinedObject::PartRotationAxes(vector<string> names, float angle)
+	{
+		for (int i = 0; i < parts.size(); i++)
+		{
+			if (MeshNameBiSearchVector(names, parts[i]->name))
+			{
+				parts[i]->RotationAxes(angle);
+			}
 		}
 	}
