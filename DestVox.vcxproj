@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="Octree.h" />
     <ClInclude Include="ProgramParams.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="stb_image.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Tools\Mesh.h" />
     <ClInclude Include="Tools\Model.h" />
     <ClInclude Include="Tools\Shader.h" />
+    <ClInclude Include="Voxel.h" />
     <ClInclude Include="World3DObject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

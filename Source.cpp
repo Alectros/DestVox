@@ -12,6 +12,8 @@
 #include "World3DObject.h"
 #include <fstream>
 #include <Windows.h>
+#include "Octree.h"
+#include "Voxel.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -60,7 +62,7 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
-
+    OctreeNode<Voxel> ex(2);
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
     vector<PointLight> lightP;
