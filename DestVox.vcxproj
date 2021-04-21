@@ -149,7 +149,9 @@
   <ItemGroup>
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="More\include\glad\glad.c" />
+    <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Templates.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Tools\stb_image.cpp" />
     <ClCompile Include="World3DObject.cpp" />

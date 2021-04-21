@@ -25,7 +25,14 @@ public:
 		this->color = color;
 		this->size = size;
 	}
+
+	Voxel& operator = (Voxel &v)
+	{
+		return v;
+	}
 };
+
+
 
 
 #endif

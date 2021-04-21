@@ -14,6 +14,7 @@
 #include <Windows.h>
 #include "Octree.h"
 #include "Voxel.h"
+#include "Templates.cpp"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -55,6 +56,7 @@ int main()
         return -1;
     }
 
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     //stbi_set_flip_vertically_on_load(true);
@@ -62,7 +64,18 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
-    OctreeNode<Voxel> ex(2);
+    OctreeNode<Voxel> ex(4);
+
+    Voxel k;
+    k.position = glm::vec3(0.5f, 0.0f, 0.0f);
+    k.size = 1;
+    k.color = glm::vec3(1.0f);
+
+    ex.SetLeaf(k.position,k, OCTOSTATE_NEAREST);
+
+    vector<Voxel> shell;
+
+
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
     vector<PointLight> lightP;
