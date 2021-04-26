@@ -149,13 +149,16 @@
   <ItemGroup>
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="More\include\glad\glad.c" />
+    <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Templates.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Tools\stb_image.cpp" />
     <ClCompile Include="World3DObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="Octree.h" />
     <ClInclude Include="ProgramParams.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="stb_image.h" />
@@ -165,6 +168,7 @@
     <ClInclude Include="Tools\Mesh.h" />
     <ClInclude Include="Tools\Model.h" />
     <ClInclude Include="Tools\Shader.h" />
+    <ClInclude Include="Voxel.h" />
     <ClInclude Include="World3DObject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
