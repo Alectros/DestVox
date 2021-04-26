@@ -64,22 +64,27 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
+    OctreeBase<int>* test = new OctreeLeaf<int>();
+
+    OctreeLeaf<int> *test1 = dynamic_cast<OctreeLeaf<int>*>(test);
+
+
     OctreeNode<Voxel> ex(4);
+    OctreeNode<Voxel> ex1(4);
 
     Voxel k;
-    k.position = glm::vec3(0.5f, 0.0f, 0.0f);
+    k.position = glm::vec3(0.5f, 0.5f, 0.5f);
     k.size = 1;
     k.color = glm::vec3(1.0f);
 
-    ex.SetLeaf(k.position,k, OCTOSTATE_NEAREST);
+    ex.SetLeaf(k.position,&k);
 
-    vector<Voxel> shell;
-
+    Voxel *l = ex.Find(k.position);
 
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
     vector<PointLight> lightP;
-    PointLight light1(glm::vec3(1.0f), glm::vec3(2.5f, 1.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
+    PointLight light1(glm::vec3(1.0f, 0.2f, 1.0f), glm::vec3(2.5f, 1.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light2(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-2.5f, 5.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light3(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light4(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
@@ -89,10 +94,7 @@ int main()
     vector<SpotLight> lightS;
 
     Model tankModel("Objects/Circle_tank/no4/ctank.obj");
-    Model mapModel("Objects/standart_map/map.obj");
     tankModel.SetInitialDirection(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-
-    SingleObject mapObj(program2, "map", &mapModel);
 
     Model tankGun = tankModel.GetSubModel(vector<string>(1, "Gun_Cylinder"), "gun");
     tankGun.SetInitialMovement(glm::vec3(0.0f, -1.6f, 0.0f));
@@ -110,7 +112,6 @@ int main()
 
     gunObj.Move(0.0f, 1.6f, 0.0f);
     turretObj.Move(0.0f, 1.6f, 0.0f);
-
 
     gunObj2.Move(0.0f, 1.6f, 0.0f);
     turretObj2.Move(0.0f, 1.6f, 0.0f);
@@ -137,6 +138,14 @@ int main()
     vector<string> names(1, "gun");
     vector<string> names2(1, "turret");
 
+    pair.MoveTo(0.0f, 1.0f, 0.0f);
+
+    SingleObject plates(program2,"plates", "Objects/Airdrome/plates.obj");
+    SingleObject grass(program2,"plates", "Objects/Airdrome/grass.obj");
+    CombinedObject map(program2, "map");
+    map.AddObject(&plates);
+    map.AddObject(&grass);
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -160,8 +169,8 @@ int main()
         Ctank1.PartLookPointLocked(names2, camera.Position);
         Ctank2.PartLookPointLocked(names2, camera.Position);
 
-        mapObj.Draw(camera, parameters, dir, lightP, lightS);
         pair.Draw(camera, parameters, dir, lightP, lightS);
+        map.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -28,11 +28,19 @@ public:
 
 	Voxel& operator = (Voxel &v)
 	{
-		return v;
+		this->position = v.position;
+		this->color = v.color;
+		this->size = v.size;
+
+		return *this;
+	}
+
+	void operator = (Voxel* v)
+	{
+		this->position = v->position;
+		this->color = v->color;
+		this->size = v->size;
 	}
 };
-
-
-
 
 #endif
