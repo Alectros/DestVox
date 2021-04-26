@@ -11,7 +11,7 @@
 
 using namespace std;
 
-
+//Exponentiates a numeric object using binary multiplication
 template <class T>
 T Stepi(T _x, int _a)
 {
@@ -46,6 +46,7 @@ template <class T>
 OctreeBase<T>::~OctreeBase()
 {};
 
+//Calculates the distance using the Pythagorean theorem for three-dimensional space
 template <class T>
 float OctreeBase<T>::Distance(glm::vec3 position)
 {
@@ -103,7 +104,6 @@ OctreeLeaf<T>::OctreeLeaf(T* obj)
 {
 	this->obj = obj;
 }
-
 
 template <class T>
 OctreeLeaf<T>::~OctreeLeaf()
@@ -183,6 +183,8 @@ OctreeNode<T>::OctreeNode()
 	obj = NULL;
 }
 
+
+//Calculates the level of an octree and builds it recursively
 template <class T>
 OctreeNode<T>::OctreeNode(int size)
 {
@@ -218,6 +220,8 @@ OctreeNode<T>::~OctreeNode()
 	delete[];
 }
 
+//Searches for the nearest node to the position point
+//	Pass existing objects and selects the closest point from all nodes
 template <class T>
 OctreeBase<T>* OctreeNode<T>::FindNearestNode(glm::vec3 position)
 {
@@ -244,6 +248,8 @@ OctreeBase<T>* OctreeNode<T>::FindNearestNode(glm::vec3 position)
 	return nodeNear;
 }
 
+//Searches for the nearest leaf to the position point
+//	Pass existing objects and selects the closest point from all leafs
 template <class T>
 OctreeBase<T>* OctreeNode<T>::FindNearestLeaf(glm::vec3 position)
 {
@@ -270,6 +276,8 @@ OctreeBase<T>* OctreeNode<T>::FindNearestLeaf(glm::vec3 position)
 	return leafNear;
 }
 
+//Searches for the node in the position point
+// Searches for a node exactly at the position point, if it does not exist returns NULL
 template <class T>
 OctreeBase<T>* OctreeNode<T>::FindActualNode(glm::vec3 position)
 {
@@ -288,6 +296,8 @@ OctreeBase<T>* OctreeNode<T>::FindActualNode(glm::vec3 position)
 		return obj[xv * 4 + yv * 2 + zv]->FindActualNode(position);
 }
 
+//Searches for the leaf in the position point
+// Searches for a leaf exactly at the position point, if it does not exist returns NULL
 template <class T>
 OctreeBase<T>* OctreeNode<T>::FindActualLeaf(glm::vec3 position)
 {
@@ -303,6 +313,8 @@ OctreeBase<T>* OctreeNode<T>::FindActualLeaf(glm::vec3 position)
 		return obj[xv * 4 + yv * 2 + zv]->FindActualLeaf(position);
 }
 
+
+//Use up-defined methods to find need leaf and return pointer on object
 template <class T>
 T* OctreeNode<T>::Find(glm::vec3 position, bool nearestSearch)
 {
@@ -326,6 +338,7 @@ T* OctreeNode<T>::Find(glm::vec3 position, bool nearestSearch)
 	}
 }
 
+//Use up-defined methods to find need leaf and replaces pointer on object
 template <class T>
 void OctreeNode<T>::SetLeaf(glm::vec3 position, T *leaf, bool nearest)
 {
@@ -409,6 +422,7 @@ void OctreeNode<T>::SetLeaf(glm::vec3 position, T *leaf, bool nearest)
 //			}
 //}
 
+//Recursively create Nodes
 template <class T>
 OctreeBase<T>**  OctreeNode<T>::NodeCreator(glm::vec3 position, int size)
 {
@@ -456,6 +470,7 @@ OctreeBase<T>**  OctreeNode<T>::NodeCreator(glm::vec3 position, int size)
 	return node;
 }
 
+//Create a the 1st lvl node with leafs 
 template <class T>
 OctreeBase<T>** OctreeNode<T>::LeafCreator(glm::vec3 position)
 {

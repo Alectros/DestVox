@@ -86,7 +86,7 @@ public:
 
 	//Base constructor
 	OctreeNode();
-	//Build the octotree with size level
+	//Build the octotree with cube edge size
 	OctreeNode(int size);
 	//Destructor
 	~OctreeNode();
