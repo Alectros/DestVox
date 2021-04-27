@@ -217,7 +217,7 @@ OctreeNode<T>::OctreeNode(int size)
 template <class T>
 OctreeNode<T>::~OctreeNode()
 {
-	delete[];
+	delete[] obj;
 }
 
 //Searches for the nearest node to the position point

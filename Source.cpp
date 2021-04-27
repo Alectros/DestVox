@@ -64,24 +64,6 @@ int main()
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
 
-    OctreeBase<int>* test = new OctreeLeaf<int>();
-
-    OctreeLeaf<int> *test1 = dynamic_cast<OctreeLeaf<int>*>(test);
-
-
-    OctreeNode<Voxel> ex(4);
-    OctreeNode<Voxel> ex1(4);
-
-    Voxel k;
-    k.position = glm::vec3(0.5f, 0.5f, 0.5f);
-    k.size = 1;
-    k.color = glm::vec3(1.0f);
-
-    ex.SetLeaf(k.position,&k);
-
-    Voxel *l = ex.Find(k.position);
-
-
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
     vector<PointLight> lightP;
     PointLight light1(glm::vec3(1.0f, 0.2f, 1.0f), glm::vec3(2.5f, 1.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
@@ -164,10 +146,10 @@ int main()
        // pair.LookPoint(camera.Position);
         Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);
 
-        Ctank1.PartLookPoint(names, camera.Position);
-        Ctank2.PartLookPoint(names, camera.Position);
-        Ctank1.PartLookPointLocked(names2, camera.Position);
-        Ctank2.PartLookPointLocked(names2, camera.Position);
+        Ctank1.PartLookPoint(names, camera.Position - pair.position);
+        Ctank2.PartLookPoint(names, camera.Position - pair.position);
+        Ctank1.PartLookPointLocked(names2, camera.Position - pair.position);
+        Ctank2.PartLookPointLocked(names2, camera.Position - pair.position);
 
         pair.Draw(camera, parameters, dir, lightP, lightS);
         map.Draw(camera, parameters, dir, lightP, lightS);
