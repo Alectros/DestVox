@@ -44,10 +44,9 @@ public:
 	//If in Leaf exist in position point return it othewise return NULL
 	virtual OctreeBase* FindActualLeaf(glm::vec3 position);
 
-	//virtual int IsNULL();
-	//virtual bool DeleteNULL();
+	virtual bool IsNULL();
 
-	//virtual void GetShell(OctreeBase<T>* head, vector<T*>& shell);
+	virtual void GetShell(OctreeBase<T>* head, vector<T*>& shell) = 0;
 };
 
 template <class T>
@@ -72,10 +71,9 @@ public:
 	//If in Leaf exist in position point return it othewise return NULL
 	OctreeBase<T>* FindActualLeaf(glm::vec3 position);
 
-	//int IsNULL();
-	//bool DeleteNULL();
+	bool IsNULL();
 
-	//void GetShell(OctreeBase<T>* head, vector<T*>& shell);
+	void GetShell(OctreeBase<T>* head, vector<T*>& shell);
 };
 
 template <class T>
@@ -109,9 +107,10 @@ public:
 	//	nearest - set nearest to position point
 	void SetLeaf(glm::vec3 position, T *leaf, bool nearest = false);
 
-	//int IsNULL();
-	//bool DeleteNULL();
-	//void GetShell(OctreeBase<T>* head, vector<T*>& shell);
+	bool IsNULL();
+
+	void GetShell(OctreeBase<T>* head, vector<T*>& shell);
+
 
 private:
 	//Create octotree node(lvl > 1)

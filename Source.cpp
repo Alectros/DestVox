@@ -15,6 +15,7 @@
 #include "Octree.h"
 #include "Voxel.h"
 #include "Templates.cpp"
+#include "VoxelObject.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -61,8 +62,61 @@ int main()
     glDepthFunc(GL_LESS);
     //stbi_set_flip_vertically_on_load(true);
 
+
+
+
     Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
     Shader program2("l10T.vs","l10_thing_many_lights.fs");
+    Shader voxelProgram("VoxelVertexShader.vs","VoxelFragmentShader.fs");
+
+    OctreeNode<Voxel> testOcto(4);
+
+    Voxel* testVoxel = new Voxel(glm::vec3(0.5f, -1.5f, 1.5f), glm::vec3(0.1f), 1);
+    Voxel* testVoxel1 = new Voxel(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.2f), 1);
+    Voxel* testVoxel2 = new Voxel(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.3f), 1);
+    Voxel* testVoxel3 = new Voxel(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.4f), 1);
+    Voxel* testVoxel4 = new Voxel(glm::vec3(-1.5f, -1.5f, -1.5f), glm::vec3(0.5f), 1);
+    Voxel* testVoxel5 = new Voxel(glm::vec3( 1.5f,  1.5f,  1.5f), glm::vec3(0.6f), 1);
+
+    testOcto.SetLeaf(testVoxel->position, testVoxel);
+    testOcto.SetLeaf(testVoxel1->position, testVoxel1);
+    testOcto.SetLeaf(testVoxel2->position, testVoxel2);
+    testOcto.SetLeaf(testVoxel3->position, testVoxel3);
+    testOcto.SetLeaf(testVoxel4->position, testVoxel4);
+    testOcto.SetLeaf(testVoxel5->position, testVoxel5);
+
+    Model voxcubeModel("Objects/voxCube/voxcube.obj");
+
+    VoxelObject voxTest(program1, "voxelTest", &voxcubeModel , &testOcto);
+    voxTest.Move(0.0f, 2.0f, 0.0f);
+
+    voxTest.SetShell();
+
+    OctreeNode<Voxel> circleVox(4);
+
+    VoxelObject circle3(program1, "voxelCircle", &voxcubeModel, &circleVox);
+
+    Voxel* testV1 = new Voxel(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV2 = new Voxel(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV3 = new Voxel(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV4 = new Voxel(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV5 = new Voxel(glm::vec3(1.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV6 = new Voxel(glm::vec3(0.5f, 1.5f, 0.5f), glm::vec3(0.2f), 1);
+    Voxel* testV7 = new Voxel(glm::vec3(0.5f, 0.5f, 1.5f), glm::vec3(0.2f), 1);
+
+    circleVox.SetLeaf(testV1->position, testV1);
+    circleVox.SetLeaf(testV2->position, testV2);
+    circleVox.SetLeaf(testV3->position, testV3);
+    circleVox.SetLeaf(testV4->position, testV4);
+    circleVox.SetLeaf(testV5->position, testV5);
+    circleVox.SetLeaf(testV6->position, testV6);
+    circleVox.SetLeaf(testV7->position, testV7);
+
+    circle3.SetShell();
+
+    circle3.Move(2.0f, 1.0f, 2.0f);
+
+    circle3.ScaleTo(0.2f, 0.2f, 0.2f);
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
     vector<PointLight> lightP;
@@ -71,7 +125,7 @@ int main()
     PointLight light3(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light4(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
 
-    lightP.push_back(light1);
+    //lightP.push_back(light1);
 
     vector<SpotLight> lightS;
 
@@ -117,16 +171,19 @@ int main()
     pair.AddObject(&Ctank1);
     pair.AddObject(&Ctank2);
 
+
     vector<string> names(1, "gun");
     vector<string> names2(1, "turret");
 
-    pair.MoveTo(0.0f, 1.0f, 0.0f);
+    pair.MoveTo(-15.0f, 0.2f, 0.0f);
 
     SingleObject plates(program2,"plates", "Objects/Airdrome/plates.obj");
     SingleObject grass(program2,"plates", "Objects/Airdrome/grass.obj");
     CombinedObject map(program2, "map");
     map.AddObject(&plates);
     map.AddObject(&grass);
+
+    SingleObject cubestart(program1, "cube", "Objects/Cube/cube.obj");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -144,15 +201,18 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
        // pair.LookPoint(camera.Position);
-        Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);
+        //Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);
 
-        Ctank1.PartLookPoint(names, camera.Position - pair.position);
-        Ctank2.PartLookPoint(names, camera.Position - pair.position);
-        Ctank1.PartLookPointLocked(names2, camera.Position - pair.position);
-        Ctank2.PartLookPointLocked(names2, camera.Position - pair.position);
+        //Ctank1.PartLookPoint(names, camera.Position - pair.position);
+        //Ctank2.PartLookPoint(names, camera.Position - pair.position);
+        //Ctank1.PartLookPointLocked(names2, camera.Position - pair.position);
+        //Ctank2.PartLookPointLocked(names2, camera.Position - pair.position);
 
         pair.Draw(camera, parameters, dir, lightP, lightS);
         map.Draw(camera, parameters, dir, lightP, lightS);
+        voxTest.Draw(camera, parameters, dir, lightP, lightS);
+        circle3.Draw(camera, parameters, dir, lightP, lightS);
+        cubestart.Draw(camera, parameters, dir, lightP, lightS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

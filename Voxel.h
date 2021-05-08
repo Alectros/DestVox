@@ -1,6 +1,8 @@
 #ifndef Voxel_H
 #define Voxel_H
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,8 +11,12 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <vector>
+
+#include "Tools/Model.h"
 
 using namespace std;
+
 
 class Voxel
 {
@@ -24,6 +30,12 @@ public:
 		this->position = position;
 		this->color = color;
 		this->size = size;
+	}
+
+	void Draw(Model voxelModel,Shader shader)
+	{
+		voxelModel.faceColor = this->color;
+		voxelModel.Draw(shader);
 	}
 
 	Voxel& operator = (Voxel &v)
@@ -42,5 +54,6 @@ public:
 		this->size = v->size;
 	}
 };
+
 
 #endif
