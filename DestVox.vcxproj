@@ -154,6 +154,8 @@
     <ClCompile Include="Templates.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Tools\stb_image.cpp" />
+    <ClCompile Include="VoxelMaterial.cpp" />
+    <ClCompile Include="VoxelObject.cpp" />
     <ClCompile Include="World3DObject.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +171,8 @@
     <ClInclude Include="Tools\Model.h" />
     <ClInclude Include="Tools\Shader.h" />
     <ClInclude Include="Voxel.h" />
+    <ClInclude Include="VoxelMaterial.h" />
+    <ClInclude Include="VoxelObject.h" />
     <ClInclude Include="World3DObject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

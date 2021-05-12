@@ -76,19 +76,14 @@ OctreeBase<T>* OctreeBase<T>::FindActualLeaf(glm::vec3 position)
 {
 	return NULL;
 }
-//template <class T>
-//int OctreeBase<T>::IsNULL()
-//{
-//	return 0;
-//}
-//template<class T>
-//bool OctreeBase<T>::DeleteNULL()
-//{
-//	return 0;
-//}
-//template <class T>
-//void OctreeBase<T>::GetShell(OctreeBase<T>* head, vector<T*>& shell) 
-//{}
+template <class T>
+bool OctreeBase<T>::IsNULL()
+{
+	return 0;
+}
+
+
+
 
 
 
@@ -96,7 +91,7 @@ OctreeBase<T>* OctreeBase<T>::FindActualLeaf(glm::vec3 position)
 template <class T>
 OctreeLeaf<T>::OctreeLeaf()
 {
-	this->obj = new T();
+	this->obj = NULL;
 }
 
 template <class T>
@@ -138,35 +133,33 @@ OctreeBase<T>* OctreeLeaf<T>::FindActualLeaf(glm::vec3 position)
 		return NULL;
 }
 
-//template<class T>
-//int OctreeLeaf<T>::IsNULL()
-//{
-//	return obj != NULL;
-//}
-//
-//template<class T>
-//bool OctreeLeaf<T>::DeleteNULL()
-//{
-//	if (obj == NULL)
-//		return 1;
-//	else
-//		return 0;
-//}
+template<class T>
+bool OctreeLeaf<T>::IsNULL()
+{
+	return obj == NULL;
+}
 
 
-//template <class T>
-//void OctreeLeaf<T>::GetShell(OctreeBase<T>* head, vector<T*>& shell)
-//{
-//	T* leftO = head->FindActualLeaf(this->position + glm::vec3(-1.0f, 0.0f, 0.0f));
-//	T* rightO = head->FindActualLeaf(this->position + glm::vec3(1.0f, 0.0f, 0.0f));
-//	T* topO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 1.0f, 0.0f));
-//	T* bottomO = head->FindActualLeaf(this->position + glm::vec3(0.0f, -1.0f, 0.0f));
-//	T* nearO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 0.0f, -1.0f));
-//	T* farO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 0.0f, 1.0f));
-//
-//	if (leftO == NULL || rightO == NULL || topO == NULL || bottomO == NULL || nearO == NULL || farO == NULL)
-//		shell.push_back(obj);
-//}
+template <class T>
+void OctreeLeaf<T>::GetShell(OctreeBase<T>* head, vector<T*>& shell)
+{
+	if (this->obj == NULL)
+		return;
+	OctreeBase<T>* leftO = head->FindActualLeaf(this->position + glm::vec3(-1.0f, 0.0f, 0.0f));
+	OctreeBase<T>* rightO = head->FindActualLeaf(this->position + glm::vec3(1.0f, 0.0f, 0.0f));
+	OctreeBase<T>* topO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 1.0f, 0.0f));
+	OctreeBase<T>* bottomO = head->FindActualLeaf(this->position + glm::vec3(0.0f, -1.0f, 0.0f));
+	OctreeBase<T>* nearO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 0.0f, -1.0f));
+	OctreeBase<T>* farO = head->FindActualLeaf(this->position + glm::vec3(0.0f, 0.0f, 1.0f));
+
+	if (!(leftO != NULL && !leftO->IsNULL() &&
+		  rightO != NULL && !rightO->IsNULL() && 
+		  topO != NULL && !topO->IsNULL() && 
+		  bottomO != NULL && !bottomO->IsNULL() &&
+		  nearO != NULL && !nearO->IsNULL() && 
+		  farO != NULL && !farO->IsNULL()))
+			shell.push_back(obj);
+}
 
 
 
@@ -360,67 +353,31 @@ void OctreeNode<T>::SetLeaf(glm::vec3 position, T *leaf, bool nearest)
 		cout << "OctreeNode.setLeaf : position:" + std::to_string(position.x) + '/' + std::to_string(position.y) + '/' + std::to_string(position.z) + " - NULL pointer you enter incorrect position" << endl;
 }
 
-//template<class T>
-//int OctreeNode<T>::IsNULL()
-//{
-//	bool del = false;
-//	for (int i = 0; i < 8 && !del; i++)
-//	{
-//		if (obj[i] != NULL)
-//			del = true;
-//	}
-//	return del * 2;
-//}
-//
-//template<class T>
-//bool OctreeNode<T>::DeleteNULL()
-//{
-//	int type = 0;
-//
-//	for (int i = 0; i < 8; i++)
-//	{
-//		if (obj[i] != NULL)
-//		{
-//			type = obj[i]->IsNULL();
-//
-//			if (type == 0)
-//			{
-//				OctreeBase<T>* p = obj[i];
-//				obj[i] = NULL;
-//				delete p;
-//			}
-//			else
-//				if (type == 1)
-//				{
-//					return 0;
-//				}
-//				else
-//				{
-//					if (obj[i]->DeleteNULL())
-//					{
-//						OctreeBase<T>* p = obj[i];
-//						obj[i] = NULL;
-//						delete p;
-//					}
-//					else
-//						return 0;
-//				}
-//
-//		}
-//	}
-//	return 1;
-//}
+template <class T>
+void OctreeNode<T>::GetShell(OctreeBase<T>* head, vector<T*>& shell)
+{
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 2; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				obj[i * 4 + j * 2 + k]->GetShell(head, shell);
+			}
+}
 
-//template <class T>
-//void OctreeNode<T>::GetShell(OctreeBase<T>* head, vector<T*>& shell)
-//{
-//	for (int i = 0; i < 2; i++)
-//		for (int j = 0; j < 2; j++)
-//			for (int k = 0; k < 2; k++)
-//			{
-//				obj[i * 4 + j * 2 + k]->GetShell(head, shell);
-//			}
-//}
+template<class T>
+bool OctreeNode<T>::IsNULL()
+{
+	if (obj == NULL)
+		return true;
+
+	bool del = false;
+	for (int i = 0; i < 8 && !del; i++)
+	{
+		if (obj[i] != NULL)
+			del = true;
+	}
+	return del;
+}
 
 //Recursively create Nodes
 template <class T>
