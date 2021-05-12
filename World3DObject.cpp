@@ -24,16 +24,16 @@
 	}
 
 	//Add lights to the objects
-	void World3DObject::SetLights(DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void World3DObject::SetLights(DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		dLight.AddToShader(shader, "directedlight");
 
 		for (int i = 0; i < pLights.size(); i++)
-			pLights[i].AddToShaderI(shader, "pointlights", i);
+			pLights[i]->AddToShaderI(shader, "pointlights", i);
 		PointLight::AddCount(shader, "COUNT_POINT_LIGHTS", pLights.size());
 
 		for (int i = 0; i < sLights.size(); i++)
-			sLights[i].AddToShaderI(shader, "spotLights", i);
+			sLights[i]->AddToShaderI(shader, "spotLights", i);
 		SpotLight::AddCount(shader, "COUNT_SPOTLIGHTS", sLights.size());
 	}
 
@@ -137,7 +137,7 @@
 	}
 
 	//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
-	void World3DObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void World3DObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		Draw(camera, params);
 
@@ -148,7 +148,7 @@
 		shader.setVec3("faceColor", glm::vec3(0.6));
 	}
 
-	void World3DObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void World3DObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		Draw(camera, params, objModel);
 
@@ -497,7 +497,7 @@
 		model->Draw(shader);
 	}
 
-	void SingleObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void SingleObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		if (model == NULL)
 			return;
@@ -522,7 +522,7 @@
 		model->Draw(shader);
 	}
 
-	void SingleObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel , DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void SingleObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel , DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		if (model == NULL)
 			return;
@@ -635,7 +635,7 @@ CombinedObject::CombinedObject(Shader shader, string name, vector<World3DObject*
 		}
 	}
 
-	void CombinedObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void CombinedObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		glm::mat4 modelMXComb = GetModelMatrix();
 
@@ -646,7 +646,7 @@ CombinedObject::CombinedObject(Shader shader, string name, vector<World3DObject*
 		}
 	}
 
-	void CombinedObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+	void CombinedObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 	{
 		glm::mat4 modelMXComb = GetModelMatrix();
 

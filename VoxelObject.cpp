@@ -64,15 +64,13 @@ void VoxelObject::Draw(Camera camera, ProgramParams& params)
 
 	shader.setMat4("projection", projection);
 	shader.setMat4("view", view);
-	shader.setFloat("shininess", 32.0f);
 	shader.setVec3("viewPos", camera.Position);
 	for (int i = 0; i < shell.size(); i++)
 	{
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(shell[i]->size));
 		model = glm::translate(model, shell[i]->position);
 		shader.setMat4("model", objmodel * model);
-
-		shader.setVec3("faceColor", shell[i]->color);
+		shell[i]->material.SetToShader(shader, "material");
 
 		shell[i]->Draw(*(this->voxelCubeModel), shader);
 	}
@@ -86,25 +84,23 @@ void VoxelObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel)
 
 	shader.setMat4("projection", projection);
 	shader.setMat4("view", view);
-	shader.setFloat("shininess", 32.0f);
 	shader.setVec3("viewPos", camera.Position);
 	for (int i = 0; i < shell.size(); i++)
 	{
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(shell[i]->size));
 		model = glm::translate(model, shell[i]->position);
 		shader.setMat4("model", objModel * objmodel * model);
-
-		shader.setVec3("faceColor", shell[i]->color);
+		shell[i]->material.SetToShader(shader, "material");
 
 		shell[i]->Draw(*(this->voxelCubeModel), shader);
 	}
 }
-void VoxelObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+void VoxelObject::Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 {
 	SetLights(dLight, pLights, sLights);
 	this->Draw(camera, params);
 }
-void VoxelObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights)
+void VoxelObject::Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights)
 {
 	SetLights(dLight, pLights, sLights);
 	this->Draw(camera, params, objModel);

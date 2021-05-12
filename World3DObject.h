@@ -56,15 +56,15 @@ public:
 	glm::mat4 GetModelMatrix();//calculated the model matrix of the object
 	
 	//Add lights to the objects
-	void SetLights(DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);	
+	void SetLights(DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);	
 	void Restruct();//using the rotation quaterion gets the current values of the vectors and angles	
 	bool IsLCS(glm::vec3 first, glm::vec3 second, glm::vec3 third);//determines which coordinate system the 3 vectors belong to
 	glm::vec3 IntersectSquareLinePoint(glm::vec3 sqN, glm::vec3 p);//calculated the projection of the vector(p) onto the plate defines by the normal(sqN)
 	
 	virtual void Draw(Camera camera, ProgramParams& params);//prepares and translates object's data to the shader without lights
 	virtual void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
-	virtual void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
-	virtual void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	virtual void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
+	virtual void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
 	virtual void SetInitialMovement(glm::vec3 position);//set initial rotate quaterion without changing origin state
 	virtual void SetInitialDirection(glm::vec3 front);
 	virtual void SetInitialScale(glm::vec3 scales);//set initial rotate quaterion without changing origin state
@@ -119,8 +119,8 @@ public:
 
 	void Draw(Camera camera, ProgramParams& params);
 	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
-	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
-	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
 	void SetInitialMovement(glm::vec3 position);
 	void SetInitialDirection(glm::vec3 front);
 	void SetInitialScale(glm::vec3 scale);
@@ -144,8 +144,8 @@ public:
 
 	void Draw(Camera camera, ProgramParams& params);
 	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
-	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
-	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
 	void SetInitialMovement(glm::vec3 position);
 	void SetInitialDirection(glm::vec3 front);
 	void SetInitialScale(glm::vec3 scale);

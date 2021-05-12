@@ -16,6 +16,7 @@
 #include "Voxel.h"
 #include "Templates.cpp"
 #include "VoxelObject.h"
+#include "VoxelMaterial.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -63,20 +64,21 @@ int main()
     //stbi_set_flip_vertically_on_load(true);
 
 
+     
+    auto materialsVXL = LoadMaterials("VoxelMaterials/vxmat.txt");
 
-
-    Shader program1("TextNol10T.vs","TextNoLightsMany.fs");
-    Shader program2("l10T.vs","l10_thing_many_lights.fs");
-    Shader voxelProgram("VoxelVertexShader.vs","VoxelFragmentShader.fs");
+    Shader program1("Shaders/Models/TextNol10T.vs","Shaders/Models/TextNoLightsMany.fs");
+    Shader program2("Shaders/Models/l10T.vs","Shaders/Models/l10_thing_many_lights.fs");
+    Shader voxelProgram("Shaders/Voxel/Materials/VoxelVertexMaterialShader.vs","Shaders/Voxel/Materials/VoxelFragmentMaterialShader.fs");
 
     OctreeNode<Voxel> testOcto(4);
 
-    Voxel* testVoxel = new Voxel(glm::vec3(0.5f, -1.5f, 1.5f), glm::vec3(0.1f), 1);
-    Voxel* testVoxel1 = new Voxel(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.2f), 1);
-    Voxel* testVoxel2 = new Voxel(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.3f), 1);
-    Voxel* testVoxel3 = new Voxel(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.4f), 1);
-    Voxel* testVoxel4 = new Voxel(glm::vec3(-1.5f, -1.5f, -1.5f), glm::vec3(0.5f), 1);
-    Voxel* testVoxel5 = new Voxel(glm::vec3( 1.5f,  1.5f,  1.5f), glm::vec3(0.6f), 1);
+    Voxel* testVoxel = new Voxel(materialsVXL["cyan_plastic"],glm::vec3(0.5f, -1.5f, 1.5f), 1);
+    Voxel* testVoxel1 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(0.5f, 0.5f, -0.5f), 1);
+    Voxel* testVoxel2 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-0.5f, 0.5f, 0.5f), 1);
+    Voxel* testVoxel3 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-0.5f, -0.5f, -0.5f), 1);
+    Voxel* testVoxel4 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-1.5f, -1.5f, -1.5f), 1);
+    Voxel* testVoxel5 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3( 1.5f,  1.5f,  1.5f), 1);
 
     testOcto.SetLeaf(testVoxel->position, testVoxel);
     testOcto.SetLeaf(testVoxel1->position, testVoxel1);
@@ -87,22 +89,22 @@ int main()
 
     Model voxcubeModel("Objects/voxCube/voxcube.obj");
 
-    VoxelObject voxTest(program1, "voxelTest", &voxcubeModel , &testOcto);
+    VoxelObject voxTest(voxelProgram, "voxelTest", &voxcubeModel , &testOcto);
     voxTest.Move(0.0f, 2.0f, 0.0f);
 
     voxTest.SetShell();
 
     OctreeNode<Voxel> circleVox(4);
 
-    VoxelObject circle3(program1, "voxelCircle", &voxcubeModel, &circleVox);
+    VoxelObject circle3(voxelProgram, "voxelCircle", &voxcubeModel, &circleVox);
 
-    Voxel* testV1 = new Voxel(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV2 = new Voxel(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV3 = new Voxel(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV4 = new Voxel(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV5 = new Voxel(glm::vec3(1.5f, 0.5f, 0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV6 = new Voxel(glm::vec3(0.5f, 1.5f, 0.5f), glm::vec3(0.2f), 1);
-    Voxel* testV7 = new Voxel(glm::vec3(0.5f, 0.5f, 1.5f), glm::vec3(0.2f), 1);
+    Voxel* testV1 = new Voxel(materialsVXL["gold"], glm::vec3(0.5f, 0.5f, 0.5f), 1);
+    Voxel* testV2 = new Voxel(materialsVXL["gold"], glm::vec3(-0.5f, 0.5f, 0.5f), 1);
+    Voxel* testV3 = new Voxel(materialsVXL["gold"], glm::vec3(0.5f, -0.5f, 0.5f), 1);
+    Voxel* testV4 = new Voxel(materialsVXL["gold"], glm::vec3(0.5f, 0.5f, -0.5f), 1);
+    Voxel* testV5 = new Voxel(materialsVXL["gold"], glm::vec3(1.5f, 0.5f, 0.5f), 1);
+    Voxel* testV6 = new Voxel(materialsVXL["gold"], glm::vec3(0.5f, 1.5f, 0.5f), 1);
+    Voxel* testV7 = new Voxel(materialsVXL["gold"], glm::vec3(0.5f, 0.5f, 1.5f), 1);
 
     circleVox.SetLeaf(testV1->position, testV1);
     circleVox.SetLeaf(testV2->position, testV2);
@@ -119,15 +121,17 @@ int main()
     circle3.ScaleTo(0.2f, 0.2f, 0.2f);
 
     DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
-    vector<PointLight> lightP;
+    vector<PointLight*> lightP;
     PointLight light1(glm::vec3(1.0f, 0.2f, 1.0f), glm::vec3(2.5f, 1.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light2(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-2.5f, 5.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light3(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light4(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
 
-    //lightP.push_back(light1);
+    //lightP.push_back(&light1);
 
-    vector<SpotLight> lightS;
+    SpotLight camSPL(glm::vec3(1.0f), camera.Position, camera.Front, 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
+    vector<SpotLight*> lightS;
+    lightS.push_back(&camSPL);
 
     Model tankModel("Objects/Circle_tank/no4/ctank.obj");
     tankModel.SetInitialDirection(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -199,6 +203,9 @@ int main()
         // Рендеринг
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        camSPL.position = camera.Position;
+        camSPL.direction = camera.Front;
 
        // pair.LookPoint(camera.Position);
         //Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);

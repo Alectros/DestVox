@@ -45,6 +45,9 @@
     <ClCompile Include="VoxelObject.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
+    <ClCompile Include="VoxelMaterial.cpp">
+      <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Tools\Camera.h">
@@ -87,6 +90,9 @@
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
     <ClInclude Include="VoxelObject.h">
+      <Filter>Файлы ресурсов</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelMaterial.h">
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
   </ItemGroup>

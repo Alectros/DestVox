@@ -38,8 +38,8 @@ public:
 	void SetShell();
 	void Draw(Camera camera, ProgramParams& params);//prepares and translates object's data to the shader without lights
 	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel);
-	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
-	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight>& pLights, vector<SpotLight>& sLights);
+	void Draw(Camera camera, ProgramParams& params, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);//prepares and translates object's data to the shader with 3 type of lights(Directed light, point light and spotlights)
+	void Draw(Camera camera, ProgramParams& params, glm::mat4 objModel, DirectedLight& dLight, vector<PointLight*>& pLights, vector<SpotLight*>& sLights);
 	void SetInitialMovement(glm::vec3 position);//set initial rotate quaterion without changing origin state
 	void SetInitialDirection(glm::vec3 front);
 	void SetInitialScale(glm::vec3 scales);//set initial rotate quaterion without changing origin state
