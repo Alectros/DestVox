@@ -76,9 +76,9 @@ int main()
     Voxel* testVoxel = new Voxel(materialsVXL["cyan_plastic"],glm::vec3(0.5f, -1.5f, 1.5f), 1);
     Voxel* testVoxel1 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(0.5f, 0.5f, -0.5f), 1);
     Voxel* testVoxel2 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-0.5f, 0.5f, 0.5f), 1);
-    Voxel* testVoxel3 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-0.5f, -0.5f, -0.5f), 1);
-    Voxel* testVoxel4 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3(-1.5f, -1.5f, -1.5f), 1);
-    Voxel* testVoxel5 = new Voxel(materialsVXL["cyan_plastic"], glm::vec3( 1.5f,  1.5f,  1.5f), 1);
+    Voxel* testVoxel3 = new Voxel(materialsVXL["silver"], glm::vec3(-0.5f, -0.5f, -0.5f), 1);
+    Voxel* testVoxel4 = new Voxel(materialsVXL["emerald"], glm::vec3(-1.5f, -1.5f, -1.5f), 1);
+    Voxel* testVoxel5 = new Voxel(materialsVXL["black_plastic"], glm::vec3( 1.5f,  1.5f,  1.5f), 1);
 
     testOcto.SetLeaf(testVoxel->position, testVoxel);
     testOcto.SetLeaf(testVoxel1->position, testVoxel1);
@@ -87,7 +87,7 @@ int main()
     testOcto.SetLeaf(testVoxel4->position, testVoxel4);
     testOcto.SetLeaf(testVoxel5->position, testVoxel5);
 
-    Model voxcubeModel("Objects/voxCube/voxcube.obj");
+    Model voxcubeModel("Objects_Demo/voxCube/voxcube.obj");
 
     VoxelObject voxTest(voxelProgram, "voxelTest", &voxcubeModel , &testOcto);
     voxTest.Move(0.0f, 2.0f, 0.0f);
@@ -116,24 +116,46 @@ int main()
 
     circle3.SetShell();
 
-    circle3.Move(2.0f, 1.0f, 2.0f);
+    circle3.Move(2.0f, 1.0f, -3.0f);
 
-    circle3.ScaleTo(0.2f, 0.2f, 0.2f);
+    circle3.ScaleTo(0.6f, 0.6f, 0.6f);
 
-    DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f, 0.8f, 1.0f));
+
+
+    OctreeNode<Voxel> ballVox(4);
+
+    for (float i = -1.5f; i <= 1.5f; i += 1.0f)
+        for (float j = -1.5f; j <= 1.5f; j += 1.0f)
+            for (float k = -1.5f; k <= 1.5f; k += 1.0f)
+            {
+                if (abs(i) == abs(j) && abs(i) == abs(k))
+                    continue;
+                Voxel* obsidian = new Voxel(materialsVXL["obsidian"], glm::vec3(i, j, k), 1);
+                ballVox.SetLeaf(obsidian->position, obsidian);
+            }
+    
+    VoxelObject obsBall(voxelProgram, "obsidianBall", &voxcubeModel, &ballVox);
+
+    obsBall.ScaleTo(0.5f, 0.5f, 0.5f);
+    obsBall.MoveTo(glm::vec3(6.0f, 2.0f, 0.0f));
+
+    obsBall.SetShell();
+
+
+    DirectedLight dir(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.1f, 0.8f, 1.0f));
     vector<PointLight*> lightP;
     PointLight light1(glm::vec3(1.0f, 0.2f, 1.0f), glm::vec3(2.5f, 1.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light2(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-2.5f, 5.0f, 2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light3(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
     PointLight light4(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-2.5f, 5.0f, -2.5f), 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f));
 
-    //lightP.push_back(&light1);
+    lightP.push_back(&light1);
 
     SpotLight camSPL(glm::vec3(1.0f), camera.Position, camera.Front, 1.0f, 0.045f, 0.0075f, glm::vec3(0.1f, 0.7f, 1.0f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f)));
     vector<SpotLight*> lightS;
     lightS.push_back(&camSPL);
 
-    Model tankModel("Objects/Circle_tank/no4/ctank.obj");
+    Model tankModel("Objects_Demo/Circle_tank/no4/ctank.obj");
     tankModel.SetInitialDirection(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
     Model tankGun = tankModel.GetSubModel(vector<string>(1, "Gun_Cylinder"), "gun");
@@ -181,13 +203,17 @@ int main()
 
     pair.MoveTo(-15.0f, 0.2f, 0.0f);
 
-    SingleObject plates(program2,"plates", "Objects/Airdrome/plates.obj");
-    SingleObject grass(program2,"plates", "Objects/Airdrome/grass.obj");
+    SingleObject plates(program2,"plates", "Objects_Demo/Airdrome/plates.obj");
+    SingleObject grass(program2,"plates", "Objects_Demo/Airdrome/grass.obj");
     CombinedObject map(program2, "map");
     map.AddObject(&plates);
     map.AddObject(&grass);
 
-    SingleObject cubestart(program1, "cube", "Objects/Cube/cube.obj");
+    SingleObject cubestart(program1, "cube", "Objects_Demo/Cube/cube.obj");
+
+    Model cat("Objects_Demo/2604_open3dmodel/2604_open3dmodel/cat/cat.obj");
+    SingleObject catObj(program2, "cat", &cat);
+    catObj.MoveTo(0.0f, 0.1f, 15.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -201,7 +227,8 @@ int main()
         processInput(window);
 
         // Рендеринг
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        //glClearColor(0.6f, 0.6f, 1.0f, 1.0f);
+        glClearColor(0.7f, 0.5f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camSPL.position = camera.Position;
@@ -210,17 +237,18 @@ int main()
        // pair.LookPoint(camera.Position);
         //Ctank1.RotationAxes(0.5f, 0.0f, 1.0f, 0.0f);
 
-        //Ctank1.PartLookPoint(names, camera.Position - pair.position);
-        //Ctank2.PartLookPoint(names, camera.Position - pair.position);
-        //Ctank1.PartLookPointLocked(names2, camera.Position - pair.position);
-        //Ctank2.PartLookPointLocked(names2, camera.Position - pair.position);
+        Ctank1.PartLookPoint(names, camera.Position - pair.position);
+        Ctank2.PartLookPoint(names, camera.Position - pair.position);
+        Ctank1.PartLookPointLocked(names2, camera.Position - pair.position);
+        Ctank2.PartLookPointLocked(names2, camera.Position - pair.position);
 
         pair.Draw(camera, parameters, dir, lightP, lightS);
         map.Draw(camera, parameters, dir, lightP, lightS);
         voxTest.Draw(camera, parameters, dir, lightP, lightS);
         circle3.Draw(camera, parameters, dir, lightP, lightS);
-        cubestart.Draw(camera, parameters, dir, lightP, lightS);
-
+        //cubestart.Draw(camera, parameters, dir, lightP, lightS);
+        obsBall.Draw(camera, parameters, dir, lightP, lightS);
+        catObj.Draw(camera, parameters, dir, lightP, lightS);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -246,7 +274,7 @@ void processInput(GLFWwindow* window)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+   glViewport(0, 0, width, height);
 }
 
 

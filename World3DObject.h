@@ -109,8 +109,6 @@ class SingleObject :public World3DObject
 public:
 	Model* model;
 
-	string name;
-
 	SingleObject(Shader shader, string name);
 	SingleObject(Shader shader, string name, string path);
 	SingleObject(Shader shader, string name, Model* model);
